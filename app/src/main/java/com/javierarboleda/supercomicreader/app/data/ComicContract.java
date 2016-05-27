@@ -30,9 +30,8 @@ public class ComicContract {
 
         public static final String TABLE_NAME = "comic";
 
-        public static final String COLUMN_NAME_ID  = "id";
         public static final String COLUMN_NAME_TITLE  = "title";
-        public static final String COLUMN_NAME_FILE_DIR  = "file_dir";
+        public static final String COLUMN_NAME_FILE = "file";
         public static final String COLUMN_NAME_PAGES  = "pages";
         public static final String COLUMN_NAME_LAST_PAGE_READ  = "last_page_read";
         public static final String COLUMN_NAME_LAST_CREATION_READ  = "last_creation_read";

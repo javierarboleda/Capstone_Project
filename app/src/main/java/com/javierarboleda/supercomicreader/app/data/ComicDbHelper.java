@@ -15,7 +15,7 @@ public class ComicDbHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
 
-    private static final String DATABASE_NAME = "super_comic_reader.db";
+    public static final String DATABASE_NAME = "super_comic_reader.db";
 
     private static final String TEXT_TYPE = " TEXT";
 
@@ -34,9 +34,9 @@ public class ComicDbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_COMIC_TABLE =
                 "CREATE TABLE " + ComicEntry.TABLE_NAME + " (" +
-                        ComicEntry.COLUMN_NAME_ID + INTEGER_TYPE + " PRIMARY KEY," +
+                        ComicEntry._ID + INTEGER_TYPE + " PRIMARY KEY," +
                         ComicEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
-                        ComicEntry.COLUMN_NAME_FILE_DIR + TEXT_TYPE + COMMA_SEP +
+                        ComicEntry.COLUMN_NAME_FILE + TEXT_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_PAGES + INTEGER_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_LAST_PAGE_READ + INTEGER_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_LAST_CREATION_READ + INTEGER_TYPE +
