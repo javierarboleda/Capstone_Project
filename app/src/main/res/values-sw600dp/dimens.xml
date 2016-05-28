@@ -3,7 +3,7 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
-    <dimen name="banner_background_height">200dp</dimen>
+    <dimen name="banner_background_height">400dp</dimen>
 
     <dimen name="item_margin">8dp</dimen>
     <dimen name="column_width">160dp</dimen>

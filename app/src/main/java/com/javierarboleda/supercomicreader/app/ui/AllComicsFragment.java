@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
@@ -39,9 +40,21 @@ public class AllComicsFragment extends Fragment {
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+//        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+//        recyclerView.setAdapter(new SimpleStringRecyclerViewAdapter(getActivity(),
+//                getRandomSublist(comicStrings, 30)));
+
+
+        recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
+        recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(new SimpleStringRecyclerViewAdapter(getActivity(),
                 getRandomSublist(comicStrings, 30)));
+
+
+
+
+
+
     }
 
 
@@ -71,18 +84,18 @@ public class AllComicsFragment extends Fragment {
 
             public final View mView;
             public final ImageView mImageView;
-            public final TextView mTextView;
+//            public final TextView mTextView;
 
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
                 mImageView = (ImageView) view.findViewById(R.id.comic_image_view);
-                mTextView = (TextView) view.findViewById(android.R.id.text1);
+//                mTextView = (TextView) view.findViewById(android.R.id.text1);
             }
 
             @Override
             public String toString() {
-                return super.toString() + " '" + mTextView.getText();
+                return super.toString();
             }
         }
 
@@ -107,7 +120,7 @@ public class AllComicsFragment extends Fragment {
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
             holder.mBoundString = mValues.get(position);
-            holder.mTextView.setText(mValues.get(position));
+//            holder.mTextView.setText(mValues.get(position));
 
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
