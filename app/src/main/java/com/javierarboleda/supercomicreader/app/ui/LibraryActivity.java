@@ -1,5 +1,7 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.os.Build;
+import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -10,12 +12,11 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.javierarboleda.supercomicreader.R;
+import com.javierarboleda.supercomicreader.app.util.ComicUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,11 +81,33 @@ public class LibraryActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
+
+                requestReadExternalStoragePermission();
+                
+                ComicUtil.archiveHelper(
+                    "/storage/emulated/0/comics/" +
+                    "Batman Cacophony 01 (of 03) (2009) (3 covers) (digital) (Minutemen-PhD).cbr",
+                        this
+                );
+                
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void requestReadExternalStoragePermission() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE",
+                              "android.permission.WRITE_EXTERNAL_STORAGE"};
+
+            int permsRequestCode = 200;
+
+            requestPermissions(perms, permsRequestCode);
+        }
+
+    }
 
     private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());

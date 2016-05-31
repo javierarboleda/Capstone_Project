@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('junrar-0.7.jar'))

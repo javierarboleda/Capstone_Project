@@ -4,11 +4,13 @@ package com.javierarboleda.supercomicreader.app.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.javierarboleda.supercomicreader.R;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,8 +30,6 @@ import java.util.Random;
  * A simple {@link Fragment} subclass.
  */
 public class AllComicsFragment extends Fragment {
-
-    private final String[] comicStrings = {"Batman", "Spider-Man", "Deadpool"};
 
     @Nullable
     @Override
@@ -45,24 +46,32 @@ public class AllComicsFragment extends Fragment {
 //                getRandomSublist(comicStrings, 30)));
 
 
+        File files =
+                new File(Environment.getExternalStorageDirectory().getPath() + "/comics/covers");
+
+        ArrayList<String> comicCovers = new ArrayList<>();
+
+        if (files.exists()) {
+            for (File f : files.listFiles()) {
+                comicCovers.add(f.toString());
+            }
+        }
+
+
         recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(new SimpleStringRecyclerViewAdapter(getActivity(),
-                getRandomSublist(comicStrings, 30)));
-
-
-
-
+                getRandomSublist(comicCovers, 30)));
 
 
     }
 
 
-    private List<String> getRandomSublist(String[] array, int amount) {
+    private List<String> getRandomSublist(ArrayList<String> array, int amount) {
         ArrayList<String> list = new ArrayList<>(amount);
         Random random = new Random();
         while (list.size() < amount) {
-            list.add(array[random.nextInt(array.length)]);
+            list.add(array.get(random.nextInt(array.size())));
         }
         return list;
     }
@@ -129,9 +138,13 @@ public class AllComicsFragment extends Fragment {
                 }
             });
 
+            String imagePath = mValues.get(position);
+
+            File imageFile = new File(imagePath);
+
             Glide.with(holder.mImageView.getContext())
-                    .load(R.drawable.comic_cover)
-                    .fitCenter()
+                    .load(imageFile)
+                    .centerCrop()
                     .into(holder.mImageView);
         }
 
