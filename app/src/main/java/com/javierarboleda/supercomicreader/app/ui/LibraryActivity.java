@@ -1,5 +1,8 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -13,17 +16,24 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.util.ComicUtil;
+import com.javierarboleda.supercomicreader.app.util.FileUtil;
 
+import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LibraryActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
+
+    private static final int READ_REQUEST_CODE = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,29 +62,13 @@ public class LibraryActivity extends AppCompatActivity {
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-
-//        // get the ViewPager an set it's PagerAdapter so that it can display items
-//        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-//        assert viewPager != null;
-//        viewPager.setAdapter(new MyLibraryPagerAdapter(getSupportFragmentManager(),
-//                LibraryActivity.this));
-//
-//        // Give the TabLayout the ViewPager
-//        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-//        assert tabLayout != null;
-//        tabLayout.setupWithViewPager(viewPager);
-//
-//        TabLayout.Tab tab = tabLayout.getTabAt(0);
-//        if (tab != null)
-//            tab.setText("all comics");
-//
-//        tab = tabLayout.getTabAt(1);
-//        if(tab != null)
-//            tab.setText("my creations");
-
     }
 
-
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.library_actions, menu);
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -84,15 +78,66 @@ public class LibraryActivity extends AppCompatActivity {
 
                 requestReadExternalStoragePermission();
                 
-                ComicUtil.archiveHelper(
-                    "/storage/emulated/0/comics/" +
-                    "Batman Cacophony 01 (of 03) (2009) (3 covers) (digital) (Minutemen-PhD).cbr",
-                        this
-                );
+//                ComicUtil.archiveHelper(
+//                    "/storage/emulated/0/comics/" +
+//                    "Batman Cacophony 01 (of 03) (2009) (3 covers) (digital) (Minutemen-PhD).cbr",
+//                        this
+//                );
                 
                 return true;
+
+            case R.id.action_add_comic:
+                performFileSearch();
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void performFileSearch() {
+
+        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+        // browser.
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+
+        // Filter to only show results that can be "opened", such as a
+        // file (as opposed to a list of contacts or timezones)
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // Filter to show only images, using the image MIME data type.
+        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+        // To search for all documents available via installed storage providers,
+        // it would be "*/*".
+        intent.setType("application/*");
+
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // todo check if rar file and extract images
+
+            Uri uri = null;
+            if (data != null) {
+                uri = data.getData();
+                Log.d("LibraryActivity", "OnActivityResult URI=" + uri.getPath());
+            }
+
+            String path = uri.getPath();
+
+            File file = FileUtil.convertDocumentUriPathToFile(path);
+
+            if (FileUtil.hasCbrExtension(path)) {
+                // todo: this needs to be called from async task, ALSO add progress spinner
+                ComicUtil.archiveHelper(file, this);
+            }
+
+
+
+        }
+
     }
 
     private void requestReadExternalStoragePermission() {

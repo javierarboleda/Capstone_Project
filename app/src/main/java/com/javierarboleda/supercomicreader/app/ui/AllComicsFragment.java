@@ -3,10 +3,15 @@ package com.javierarboleda.supercomicreader.app.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,8 +25,10 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.javierarboleda.supercomicreader.R;
+import com.javierarboleda.supercomicreader.app.data.ComicContract;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,22 +36,27 @@ import java.util.Random;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class AllComicsFragment extends Fragment {
+public class AllComicsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+
+    private static final int URL_LOADER = 0;
+    private SimpleStringRecyclerViewAdapter mAdapter;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+        getLoaderManager().initLoader(URL_LOADER, null, this);
+
         RecyclerView rv = (RecyclerView) inflater.inflate(
                 R.layout.fragment_all_comics, container, false);
         setupRecyclerView(rv);
+
         return rv;
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
-//        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-//        recyclerView.setAdapter(new SimpleStringRecyclerViewAdapter(getActivity(),
-//                getRandomSublist(comicStrings, 30)));
 
+        requestReadExternalStoragePermission();
 
         File files =
                 new File(Environment.getExternalStorageDirectory().getPath() + "/comics/covers");
@@ -57,15 +69,57 @@ public class AllComicsFragment extends Fragment {
             }
         }
 
+        mAdapter = new SimpleStringRecyclerViewAdapter(getActivity(),
+                getRandomSublist(comicCovers, 30));
 
         recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
         recyclerView.setHasFixedSize(true);
-        recyclerView.setAdapter(new SimpleStringRecyclerViewAdapter(getActivity(),
-                getRandomSublist(comicCovers, 30)));
+        recyclerView.setAdapter(mAdapter);
 
 
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        switch (id) {
+            case URL_LOADER:
+                return new CursorLoader(
+                        getActivity(),
+                        ComicContract.ComicEntry.buildComicDirUri(),
+                        null,
+                        null,
+                        null,
+                        null
+                );
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    private void requestReadExternalStoragePermission() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE",
+                    "android.permission.WRITE_EXTERNAL_STORAGE"};
+
+            int permsRequestCode = 200;
+
+            requestPermissions(perms, permsRequestCode);
+        }
+
+    }
 
     private List<String> getRandomSublist(ArrayList<String> array, int amount) {
         ArrayList<String> list = new ArrayList<>(amount);
@@ -75,11 +129,6 @@ public class AllComicsFragment extends Fragment {
         }
         return list;
     }
-
-
-
-
-
 
     public static class SimpleStringRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
@@ -153,22 +202,4 @@ public class AllComicsFragment extends Fragment {
             return mValues.size();
         }
     }
-
-
-
-
-
-
-//    public AllComicsFragment() {
-//        // Required empty public constructor
-//    }
-//
-//
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-//                             Bundle savedInstanceState) {
-//        // Inflate the layout for this fragment
-//        return inflater.inflate(R.layout.fragment_all_comics, container, false);
-//    }
-
 }

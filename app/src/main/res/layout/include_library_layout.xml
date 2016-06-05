@@ -18,7 +18,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:contentScrim="@drawable/toolbar_scrim"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed" >
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:expandedTitleMarginStart="48dp"
+            app:expandedTitleMarginEnd="64dp" >
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -46,8 +48,9 @@
                 android:layout_height="wrap_content"
                 android:minHeight="?attr/actionBarSize"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                app:layout_scrollFlags="scroll|enterAlways"
-                app:theme="@style/CustomActionBar" />
+                app:layout_scrollFlags="scroll|enterAlways|snap"
+                app:theme="@style/CustomActionBar"
+                app:layout_collapseMode="pin"/>
                 <!--app:layout_scrollFlags="scroll|enterAlways|snap"-->
                 <!--app:layout_collapseMode="pin" />-->
 

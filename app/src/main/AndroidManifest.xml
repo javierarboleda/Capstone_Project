@@ -23,6 +23,11 @@
             </intent-filter>
 
         </activity>
+
+        <provider
+            android:authorities="com.javierarboleda.supercomicreader"
+            android:name=".app.data.ComicProvider" />
+
     </application>
 
 </manifest>

@@ -8,4 +8,7 @@
     <dimen name="item_margin">8dp</dimen>
     <dimen name="column_width">160dp</dimen>
 
+    <dimen name="logo_left">52dp</dimen>
+    <dimen name="logo_bottom">12dp</dimen>
+
 </resources>

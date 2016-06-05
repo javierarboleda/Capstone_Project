@@ -1,5 +1,6 @@
 package com.javierarboleda.supercomicreader.app.util;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
@@ -7,6 +8,7 @@ import android.util.Log;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
+import com.javierarboleda.supercomicreader.app.data.ComicContract;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,11 +22,9 @@ import java.io.IOException;
  */
 public class ComicUtil {
 
+    public static void archiveHelper(File file, Context context) {
 
-
-    public static void archiveHelper(String filePath, Context context) {
-
-        File file = new File(filePath);
+//        File file = new File(filePath);
 
         Archive archive = null;
 
@@ -37,17 +37,22 @@ public class ComicUtil {
         }
 
         if (archive != null) {
+            int numOfPages = 0;
+
             archive.getMainHeader().print();
+
             FileHeader fh = archive.nextFileHeader();
 
-            String[] filePathDirs = filePath.split("/");
+//            String[] filePathDirs = filePath.split("/");
+            String[] filePathDirs = file.getPath().split("/");
 
-            String folderName = getFileNameWithoutExtension(filePathDirs[filePathDirs.length - 1]);
+            String folderName =
+                    FileUtil.getFileNameWithoutExtension(filePathDirs[filePathDirs.length - 1]);
 
-            String path = Environment.getExternalStorageDirectory().getPath() +
-                    "/Android/data/SuperComicReader/" + folderName + "/";
+            String path = "/Comics/SuperComicReader/" + folderName + "/";
+            String absolutePath = Environment.getExternalStorageDirectory().getPath() + path;
 
-            File folder = new File(path);
+            File folder = new File(absolutePath);
             if (!folder.exists()) {
                 folder.mkdirs();
             }
@@ -57,9 +62,9 @@ public class ComicUtil {
 
                 String fileName = fh.getFileNameString().trim();
 
-                File outFile = new File(path + "/" + fileName);
+                File outFile = new File(absolutePath + "/" + fileName);
 
-                if (!isImage(fileName)) {
+                if (!FileUtil.isImage(fileName)) {
                     fh = archive.nextFileHeader();
                     continue;
                 }
@@ -68,6 +73,7 @@ public class ComicUtil {
                     os = new FileOutputStream(outFile);
                     archive.extractFile(fh, os);
                     os.close();
+                    numOfPages++;
 
                 } catch (FileNotFoundException e) {
                     // TODO Auto-generated catch block
@@ -79,44 +85,22 @@ public class ComicUtil {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+
+                Log.d("ComicUtil", outFile.getPath());
+
                 fh = archive.nextFileHeader();
             }
 
-            if (folder.exists()) {
-                for (File f : folder.listFiles()) {
+            // write comic to database
+            // todo place in method
+            ContentValues comicValues = new ContentValues();
+            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_TITLE, folderName);
+            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_FILE, path);
+            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_PAGES, numOfPages);
 
-                    Log.d("ComicUtil", f.toString());
-                }
-            }
-
-            Log.d("ComicUtil", folder.toString() + " " + folder.length());
+            context.getContentResolver().insert(ComicContract.ComicEntry.CONTENT_URI, comicValues);
 
         }
-    }
-
-    public static String getExtension(String fileName) {
-        String[] fileNameSplit = fileName.split("\\.");
-
-        if (fileNameSplit.length > 0) {
-            return fileNameSplit[fileNameSplit.length - 1];
-        }
-
-        return "";
-    }
-
-    public static String getFileNameWithoutExtension(String fileName) {
-        int index = fileName.lastIndexOf(".");
-
-        if (index > 0) {
-            return fileName.substring(0, index);
-        }
-
-        return fileName;
-    }
-
-    public static boolean isImage(String fileName) {
-        String ext = getExtension(fileName);
-        return ext.equalsIgnoreCase("jpg") || ext.equalsIgnoreCase("png");
     }
 
 }

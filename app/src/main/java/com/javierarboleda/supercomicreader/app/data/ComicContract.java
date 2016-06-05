@@ -4,7 +4,6 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.support.graphics.drawable.BuildConfig;
 
 /**
  * Created by javierarboleda on 5/23/16.
@@ -14,7 +13,7 @@ import android.support.graphics.drawable.BuildConfig;
  */
 public class ComicContract {
 
-    public static final String CONTENT_AUTHORITY = BuildConfig.APPLICATION_ID;
+    public static final String CONTENT_AUTHORITY = "com.javierarboleda.supercomicreader";
     private static final String CONTENT_SCHEME = "content://";
     public static final Uri BASE_CONTENT_URI = Uri.parse(CONTENT_SCHEME + CONTENT_AUTHORITY);
     public static final String F_SLASH = "/";
@@ -26,6 +25,11 @@ public class ComicContract {
     public static final String PATH_IMAGE  = "image";
     public static final String PATH_FAVORITE  = "favorite";
 
+    /**
+     *
+     *  Entry for the comic table
+     *
+     */
     public static final class ComicEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "comic";
@@ -44,6 +48,11 @@ public class ComicContract {
 
         public static final String CONTENT_TYPE_ITEM = ContentResolver.CURSOR_ITEM_BASE_TYPE +
                 F_SLASH + CONTENT_AUTHORITY + F_SLASH + PATH_COMIC;
+
+        // this is for building uri on insertion
+        public static Uri buildComicDirUri() {
+            return BASE_CONTENT_URI.buildUpon().appendPath(PATH_COMIC).build();
+        }
 
         // this is for building uri on insertion
         public static Uri buildComicUri(long id) {
