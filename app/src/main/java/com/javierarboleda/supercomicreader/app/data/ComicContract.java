@@ -36,9 +36,17 @@ public class ComicContract {
 
         public static final String COLUMN_NAME_TITLE  = "title";
         public static final String COLUMN_NAME_FILE = "file";
+        public static final String COLUMN_NAME_COVER = "cover";
         public static final String COLUMN_NAME_PAGES  = "pages";
         public static final String COLUMN_NAME_LAST_PAGE_READ  = "last_page_read";
         public static final String COLUMN_NAME_LAST_CREATION_READ  = "last_creation_read";
+
+        public static final int INDEX_TITLE = 1;
+        public static final int INDEX_FILE = 2;
+        public static final int INDEX_COVER = 3;
+        public static final int INDEX_PAGES = 4;
+        public static final int INDEX_LAST_PAGE_READ = 5;
+        public static final int INDEX_LAST_CREATION_READ = 6;
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendEncodedPath(PATH_COMIC).build();

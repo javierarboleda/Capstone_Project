@@ -39,6 +39,8 @@ public class ComicUtil {
         if (archive != null) {
             int numOfPages = 0;
 
+            String coverImageName = null;
+
             archive.getMainHeader().print();
 
             FileHeader fh = archive.nextFileHeader();
@@ -60,13 +62,18 @@ public class ComicUtil {
             while (fh != null) {
                 FileOutputStream os;
 
-                String fileName = fh.getFileNameString().trim();
+                String fileName =
+                        FileUtil.getLastPathComponent(fh.getFileNameString().trim(), true);
 
                 File outFile = new File(absolutePath + "/" + fileName);
 
                 if (!FileUtil.isImage(fileName)) {
                     fh = archive.nextFileHeader();
                     continue;
+                }
+
+                if (coverImageName == null) {
+                    coverImageName = FileUtil.getLastPathComponent(fileName, true);
                 }
 
                 try {
@@ -96,6 +103,7 @@ public class ComicUtil {
             ContentValues comicValues = new ContentValues();
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_TITLE, folderName);
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_FILE, path);
+            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_COVER, coverImageName);
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_PAGES, numOfPages);
 
             context.getContentResolver().insert(ComicContract.ComicEntry.CONTENT_URI, comicValues);

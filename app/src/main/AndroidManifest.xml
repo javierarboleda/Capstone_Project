@@ -10,24 +10,22 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-
+        android:theme="@style/AppTheme">
         <activity
             android:name=".app.ui.LibraryActivity"
-            android:screenOrientation="portrait" >
-
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
         <provider
-            android:authorities="com.javierarboleda.supercomicreader"
-            android:name=".app.data.ComicProvider" />
+            android:name=".app.data.ComicProvider"
+            android:authorities="com.javierarboleda.supercomicreader" />
 
+        <activity android:name=".app.ui.ComicDetailsActivity"></activity>
     </application>
 
 </manifest>

@@ -21,8 +21,6 @@ public class ComicDbHelper extends SQLiteOpenHelper {
 
     private static final String INTEGER_TYPE = " INTEGER";
 
-    private static final String BOOLEAN_TYPE = " INTEGER";
-
     private static final String COMMA_SEP = ",";
 
     public ComicDbHelper(Context context) {
@@ -34,9 +32,10 @@ public class ComicDbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_COMIC_TABLE =
                 "CREATE TABLE " + ComicEntry.TABLE_NAME + " (" +
-                        ComicEntry._ID + INTEGER_TYPE + " PRIMARY KEY," +
-                        ComicEntry.COLUMN_NAME_TITLE + TEXT_TYPE + COMMA_SEP +
+                        ComicEntry._ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
+                        ComicEntry.COLUMN_NAME_TITLE + TEXT_TYPE + "NOT NULL UNIQUE" + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_FILE + TEXT_TYPE + COMMA_SEP +
+                        ComicEntry.COLUMN_NAME_COVER + TEXT_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_PAGES + INTEGER_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_LAST_PAGE_READ + INTEGER_TYPE + COMMA_SEP +
                         ComicEntry.COLUMN_NAME_LAST_CREATION_READ + INTEGER_TYPE +

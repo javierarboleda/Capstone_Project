@@ -12,8 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.TypedValue;
@@ -21,14 +19,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.data.ComicContract;
+import com.javierarboleda.supercomicreader.app.model.Comic;
 
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -40,6 +37,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
     private static final int URL_LOADER = 0;
     private SimpleStringRecyclerViewAdapter mAdapter;
+    private RecyclerView mRecyclerView;
 
     @Nullable
     @Override
@@ -47,14 +45,14 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
         getLoaderManager().initLoader(URL_LOADER, null, this);
 
-        RecyclerView rv = (RecyclerView) inflater.inflate(
+        mRecyclerView = (RecyclerView) inflater.inflate(
                 R.layout.fragment_all_comics, container, false);
-        setupRecyclerView(rv);
+        //setupRecyclerView(mRecyclerView);
 
-        return rv;
+        return mRecyclerView;
     }
 
-    private void setupRecyclerView(RecyclerView recyclerView) {
+    private void setupRecyclerView(RecyclerView recyclerView, Cursor cursor) {
 
         requestReadExternalStoragePermission();
 
@@ -70,11 +68,13 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
         }
 
         mAdapter = new SimpleStringRecyclerViewAdapter(getActivity(),
-                getRandomSublist(comicCovers, 30));
+                getRandomSublist(comicCovers, cursor.getCount()), cursor);
 
         recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(mAdapter);
+
+
 
 
     }
@@ -99,6 +99,8 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        setupRecyclerView(mRecyclerView, data);
 
     }
 
@@ -133,9 +135,11 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
     public static class SimpleStringRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleStringRecyclerViewAdapter.ViewHolder> {
 
+        private Context mContext;
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
         private List<String> mValues;
+        private Cursor mCursor;
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
             public String mBoundString;
@@ -161,10 +165,12 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             return mValues.get(position);
         }
 
-        public SimpleStringRecyclerViewAdapter(Context context, List<String> items) {
+        public SimpleStringRecyclerViewAdapter(Context context, List<String> items, Cursor cursor) {
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
             mValues = items;
+            mCursor = cursor;
+            mContext = context;
         }
 
         @Override
@@ -180,14 +186,20 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             holder.mBoundString = mValues.get(position);
 //            holder.mTextView.setText(mValues.get(position));
 
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            mCursor.moveToPosition(position);
 
-                }
-            });
+            final Comic comic = new Comic(
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_TITLE),
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_FILE),
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_COVER),
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_PAGES),
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_LAST_PAGE_READ),
+                    mCursor.getString(ComicContract.ComicEntry.INDEX_LAST_CREATION_READ)
+            );
 
-            String imagePath = mValues.get(position);
+            //String imagePath = mValues.get(position);
+            String imagePath = Environment.getExternalStorageDirectory().getPath() +
+                    comic.getFile() + comic.getCover();
 
             File imageFile = new File(imagePath);
 
@@ -195,11 +207,35 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
                     .load(imageFile)
                     .centerCrop()
                     .into(holder.mImageView);
+
+            holder.mView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d("hi", comic.getCover());
+                    Intent intent = createDetailComicDetailsActivityIntent(comic);
+                    mContext.startActivity(intent);
+                }
+            });
+        }
+
+        /**
+         * Helper method for creating a ComicDetailsActivity intent
+         */
+        private Intent createDetailComicDetailsActivityIntent(Comic comic) {
+
+            Intent intent = new Intent(mContext, ComicDetailsActivity.class);
+
+            intent.putExtra("comic", comic);
+//            intent.putExtra(MovieDbUtil.API_KEY_PARAM, apiKey);
+
+            return intent;
         }
 
         @Override
         public int getItemCount() {
             return mValues.size();
         }
+
+
     }
 }

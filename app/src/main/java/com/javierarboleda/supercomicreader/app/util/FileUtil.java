@@ -36,6 +36,13 @@ public class FileUtil {
         return fileName;
     }
 
+    public static String getLastPathComponent(String path, boolean backSlash) {
+
+        String[] pathSplit = backSlash ? path.split("\\\\") : path.split("/");
+
+        return pathSplit[pathSplit.length - 1];
+    }
+
     public static boolean isImage(String fileName) {
         String ext = getExtension(fileName);
 
