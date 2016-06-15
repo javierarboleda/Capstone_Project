@@ -48,59 +48,77 @@
 
         </android.support.design.widget.CollapsingToolbarLayout>
 
-    </android.support.design.widget.AppBarLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" >
-
-        <TextView
-            android:id="@+id/title_textView"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_marginStart="20dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginEnd="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginTop="8dp"
-            android:textSize="20dp"
-            android:maxLines="2"/>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:background="#FFFF">
 
-            <Button
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/title_textView"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="8dp"
+                android:textSize="20dp"
+                android:maxLines="2"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Resume"
-                android:theme="@style/ComicDetailsFlatButton"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                android:orientation="horizontal">
 
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Read"
-                android:theme="@style/ComicDetailsFlatButton"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Resume"
+                    android:theme="@style/ComicDetailsFlatButton"
+                    style="@style/Widget.AppCompat.Button.Borderless"/>
 
-            <Button
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Scan"
-                android:theme="@style/ComicDetailsFlatButton"
-                style="@style/Widget.AppCompat.Button.Borderless"/>
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Read"
+                    android:theme="@style/ComicDetailsFlatButton"
+                    style="@style/Widget.AppCompat.Button.Borderless"/>
 
+                <Button
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Scan"
+                    android:theme="@style/ComicDetailsFlatButton"
+                    style="@style/Widget.AppCompat.Button.Borderless"/>
+
+            </LinearLayout>
+
+            <View style="@style/divider" />
         </LinearLayout>
 
-        <View style="@style/divider" />
+    </android.support.design.widget.AppBarLayout>
 
-    </LinearLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginRight="8dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/new_creation_fab"
+        android:src="@drawable/ic_add_white_24dp"
+        app:fabSize="normal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_anchor="@id/recycler_view"
+        app:layout_anchorGravity="bottom|right|end"
+        app:layout_behavior="com.javierarboleda.supercomicreader.app.ui.ScrollAwareFABBehavior"
+        />
 
 </android.support.design.widget.CoordinatorLayout>
