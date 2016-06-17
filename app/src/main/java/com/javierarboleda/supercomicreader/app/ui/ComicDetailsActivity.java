@@ -1,5 +1,6 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.content.Intent;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Environment;
@@ -44,6 +45,16 @@ public class ComicDetailsActivity extends AppCompatActivity {
         setBackgroundCoverImage(coverFilePath);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.new_creation_fab);
+
+        assert fab != null;
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), CreationModeActivity.class);
+                intent.putExtra("comic", mComic);
+                startActivity(intent);
+            }
+        });
 
 
 

@@ -25,7 +25,12 @@
             android:name=".app.data.ComicProvider"
             android:authorities="com.javierarboleda.supercomicreader" />
 
-        <activity android:name=".app.ui.ComicDetailsActivity"></activity>
+        <activity android:name=".app.ui.ComicDetailsActivity" />
+        <activity
+            android:name=".app.ui.CreationModeActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_creation_mode"
+            android:theme="@style/FullscreenTheme" />
     </application>
 
 </manifest>
