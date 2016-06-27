@@ -24,7 +24,7 @@
                 <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
                     android:id="@+id/background"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
+                    android:layout_height="300dp"
                     app:layout_collapseMode="parallax"
                     android:src="@drawable/comic_cover"/>
 

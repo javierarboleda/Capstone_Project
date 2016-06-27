@@ -1,7 +1,13 @@
 package com.javierarboleda.supercomicreader.app.model;
 
+import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.javierarboleda.supercomicreader.app.util.FileUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by javierarboleda on 6/9/16.
@@ -15,6 +21,7 @@ public class Comic implements Parcelable {
     private String mPages;
     private String mLastPageRead;
     private String mLastCreationRead;
+    private List<String> mImagePaths;
 
     public Comic(String mTitle, String mFile, String mCover, String mPages, String mLastPageRead,
                  String mLastCreationRead) {
@@ -24,6 +31,13 @@ public class Comic implements Parcelable {
         this.mPages = mPages;
         this.mLastPageRead = mLastPageRead;
         this.mLastCreationRead = mLastCreationRead;
+
+        populateImagePaths();
+    }
+
+    private void populateImagePaths() {
+        mImagePaths = FileUtil.getListOfImageFileNamesInDir(
+                Environment.getExternalStorageDirectory().getPath() + mFile);
     }
 
     public Comic(Parcel in) {
@@ -33,6 +47,8 @@ public class Comic implements Parcelable {
         mPages = in.readString();
         mLastPageRead = in.readString();
         mLastCreationRead = in.readString();
+        mImagePaths = new ArrayList<>();
+        in.readList(mImagePaths, null);
     }
 
     public static final Parcelable.Creator<Comic> CREATOR = new Parcelable.Creator<Comic>() {
@@ -60,6 +76,7 @@ public class Comic implements Parcelable {
         dest.writeString(mPages);
         dest.writeString(mLastPageRead);
         dest.writeString(mLastCreationRead);
+        dest.writeList(mImagePaths);
     }
 
     public String getTitle() {
@@ -108,5 +125,13 @@ public class Comic implements Parcelable {
 
     public void setLastCreationRead(String lastCreationRead) {
         mLastCreationRead = lastCreationRead;
+    }
+
+    public List<String> getmImagePaths() {
+        return mImagePaths;
+    }
+
+    public void setmImagePaths(List<String> mImagePaths) {
+        this.mImagePaths = mImagePaths;
     }
 }

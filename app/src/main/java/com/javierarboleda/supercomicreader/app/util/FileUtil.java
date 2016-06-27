@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.Environment;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by javierarboleda on 6/3/16.
@@ -59,5 +61,22 @@ public class FileUtil {
         String filePath = Environment.getExternalStorageDirectory() + "/" + splitUriPath[1];
 
         return new File(filePath);
+    }
+
+    static public File[] getFilesInDir(String dirPath) {
+        File file = new File(dirPath);
+        return file.listFiles();
+    }
+
+    static public List<String> getListOfImageFileNamesInDir(String dirPath) {
+
+        ArrayList<String> imageFileNames = new ArrayList<>();
+
+        for (File file : getFilesInDir(dirPath)) {
+            if (isImage(file.getName())) {
+                imageFileNames.add(file.getName());
+            }
+        }
+        return imageFileNames;
     }
 }

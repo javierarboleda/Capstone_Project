@@ -1,28 +1,31 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
 import android.annotation.SuppressLint;
-import android.os.Environment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 
-import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.model.Comic;
+import com.javierarboleda.supercomicreader.app.model.Panel;
+
+import java.util.ArrayList;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class CreationModeActivity extends AppCompatActivity {
-
-    private Comic mComic;
+public class CreationModeActivity extends AppCompatActivity implements ComicPagerAdapter.Callback {
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -66,7 +69,6 @@ public class CreationModeActivity extends AppCompatActivity {
         }
     };
     private View mControlsView;
-    private SubsamplingScaleImageView mComicImageView;
     private final Runnable mShowPart2Runnable = new Runnable() {
         @Override
         public void run() {
@@ -105,10 +107,204 @@ public class CreationModeActivity extends AppCompatActivity {
         }
     };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ViewPager mViewPager;
+    private SubsamplingScaleImageView mImageView;
+    private SubsamplingScaleImageView mHiddenImageView;
+    private Comic mComic;
+    private View mTopPanel;
+    private View mBottomPanel;
+    private View mLeftPanel;
+    private View mRightPanel;
+    private Menu mMenu;
+    private int mUnitSize;
+    private String mActivePanels;
+    private ArrayList<Panel> mSavedPanels;
+    private float mOriginalScale;
+    private int mPanelPosition;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_creation_mode_activity, menu);
+        mMenu = menu;
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.top_bottom_side_toggle:
+                toggleActivePanel();
+                break;
+            case R.id.unitaction_bar_button:
+                toggleUnitSize();
+                break;
+            case R.id.plus_action_bar_button:
+                updatePanelSize(1);
+                break;
+            case R.id.minus_action_bar_button:
+                updatePanelSize(-1);
+                break;
+            case R.id.add_panel_action_bar_button:
+                savePanel();
+                break;
+            case R.id.play_action_bar_button:
+                if (!mSavedPanels.isEmpty()) {
+                    //animateToPanel(mSavedPanels.get(mPanelPosition));
+                    mPanelPosition++;
+                    if (mPanelPosition == mSavedPanels.size()) {
+                        mPanelPosition = 0;
+                    }
+                }
+                else {
+                    //playTestPanels();
+                }
+                break;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void toggleActivePanel() {
+        switch (mActivePanels) {
+            case "B/T":
+                mActivePanels = "L/R";
+                break;
+            default:
+                mActivePanels = "B/T";
+                break;
+        }
+        mMenu.findItem(R.id.top_bottom_side_toggle).setTitle(mActivePanels);
+    }
+
+    private void toggleUnitSize() {
+        switch (mUnitSize) {
+            case 50:
+                mUnitSize = 10;
+                break;
+            case 10:
+                mUnitSize = 5;
+                break;
+
+            case 5:
+                mUnitSize = 1;
+                break;
+            default:
+                mUnitSize = 50;
+                break;
+        }
+        mMenu.findItem(R.id.unitaction_bar_button).setTitle(String.valueOf(mUnitSize));
+    }
+
+    private void updatePanelSize(int posOrNeg) {
+        switch (mActivePanels) {
+            case "B/T":
+                mTopPanel.getLayoutParams().height += mUnitSize * posOrNeg;
+                mBottomPanel.getLayoutParams().height += mUnitSize * posOrNeg;
+                mTopPanel.requestLayout();
+                mBottomPanel.requestLayout();
+                break;
+            case "L/R":
+                mLeftPanel.getLayoutParams().width += mUnitSize * posOrNeg;
+                mRightPanel.getLayoutParams().width += mUnitSize * posOrNeg;
+                mLeftPanel.requestLayout();
+                mRightPanel.requestLayout();
+                break;
+        }
+    }
+
+    private void savePanel() {
+
+        mImageView = (SubsamplingScaleImageView) mViewPager.findViewWithTag(mViewPager.getCurrentItem());
+
+        float x, y, scale;
+
+        x = 0;
+        y = 0;
+        PointF topLeftSourcePointF = mImageView.viewToSourceCoord(x, y);
+        topLeftSourcePointF.x =
+                topLeftSourcePointF.x / (float)mImageView.getSWidth();
+        topLeftSourcePointF.y =
+                topLeftSourcePointF.y / (float)mImageView.getSHeight();
+
+        x = mImageView.getWidth();
+        PointF topRightSourcePointF = mImageView.viewToSourceCoord(x, y);
+        topRightSourcePointF.x =
+                topRightSourcePointF.x / (float)mImageView.getSWidth();
+        topRightSourcePointF.y =
+                topRightSourcePointF.y / (float)mImageView.getSHeight();
+
+        x = 0;
+        y = mImageView.getHeight();
+        PointF bottomLeftSourcePointF = mImageView.viewToSourceCoord(x, y);
+        bottomLeftSourcePointF.x =
+                bottomLeftSourcePointF.x / (float)mImageView.getSWidth();
+        bottomLeftSourcePointF.y =
+                bottomLeftSourcePointF.y / (float)mImageView.getSHeight();
+
+        x = mImageView.getWidth();
+        PointF bottomRightSourcePointF = mImageView.viewToSourceCoord(x, y);
+        bottomRightSourcePointF.x =
+                bottomRightSourcePointF.x / (float)mImageView.getSWidth();
+        bottomRightSourcePointF.y =
+                bottomRightSourcePointF.y / (float)mImageView.getSHeight();
+
+        scale = mImageView.getScale() / mOriginalScale;
+
+        String debugText = "TL: " + topLeftSourcePointF.x + ", " + topLeftSourcePointF.y +
+                " TR: " + topRightSourcePointF.x + ", " + topRightSourcePointF.y +
+                " BL: " + bottomLeftSourcePointF.x + ", " + bottomLeftSourcePointF.y +
+                " BR: " + bottomRightSourcePointF.x + ", " + bottomRightSourcePointF.y;
+
+        //mCoordTextView.setText(debugText);
+
+        // get left panel x, and the percentage x point on image
+        x = mLeftPanel.getWidth();
+        PointF leftPanePointF = mImageView.viewToSourceCoord(x, 0);
+        leftPanePointF.x =
+                leftPanePointF.x / (float) mImageView.getSWidth();
+
+        // get right panel x, and the percentage x point on image
+        x = mImageView.getWidth() - mRightPanel.getWidth();
+        PointF rightPanePointF = mImageView.viewToSourceCoord(x, 0);
+        rightPanePointF.x =
+                rightPanePointF.x / (float) mImageView.getSWidth();
+
+        // get right panel x, and the percentage x point on image
+        y = mTopPanel.getHeight();
+        PointF topPanePointF = mImageView.viewToSourceCoord(0, y);
+        topPanePointF.y =
+                topPanePointF.y / (float) mImageView.getSHeight();
+
+        // get right panel x, and the percentage x point on image
+        y = mImageView.getHeight() - mBottomPanel.getHeight();
+        PointF bottomPanePointF = mImageView.viewToSourceCoord(0, y);
+        bottomPanePointF.y =
+                bottomPanePointF.y / (float) mImageView.getSHeight();
+
+        Panel panel = new Panel(topLeftSourcePointF, topRightSourcePointF,
+                bottomLeftSourcePointF, bottomRightSourcePointF, leftPanePointF, rightPanePointF,
+                topPanePointF, bottomPanePointF, scale);
+
+        mSavedPanels.add(panel);
+
+        Log.d("SavedPanelImage",
+                panel.getTopLeft() + " : " +
+                        panel.getTopRight() + " : " +
+                        panel.getBottomLeft() + " : " +
+                        panel.getBottomRight() + " : " +
+                        panel.getScale()
+        );
+        Log.d("SavedPanelBorders",
+                panel.getLeftPane().x + " : " +
+                        panel.getRightPane().x + " : " +
+                        panel.getTopPane().y + " : " +
+                        panel.getBottomPane().y
+        );
     }
 
     @Override
@@ -116,37 +312,72 @@ public class CreationModeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         mComic = getIntent().getParcelableExtra("comic");
-        String coverFilePath = Environment.getExternalStorageDirectory() +
-                mComic.getFile() + mComic.getCover();
 
         setContentView(R.layout.activity_creation_mode);
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
+        mHiddenImageView = (SubsamplingScaleImageView) findViewById(R.id.comicHiddenImageView);
 
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+//        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
 
+        init();
 
-        SubsamplingScaleImageView mComicImageView =
-                (SubsamplingScaleImageView) findViewById(R.id.comic_image_view);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        // Set up the user interaction to manually show or hide the system UI.
-        mComicImageView.setOnClickListener(new View.OnClickListener() {
+        mViewPager = (ViewPager) findViewById(R.id.viewPager);
+        mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
+
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+
+    }
+
+    private void init() {
+
+        mTopPanel = findViewById(R.id.topPanel);
+        mBottomPanel = findViewById(R.id.bottomPanel);
+        mLeftPanel = findViewById(R.id.leftPanel);
+        mRightPanel = findViewById(R.id.rightPanel);
+        mUnitSize = 50;
+        mActivePanels = "B/T";
+        mSavedPanels = new ArrayList<>();
+        mPanelPosition = 0;
+
+        //testLoadImage();
+    }
+
+    @Override
+    public void onViewLoaded(View view, String uri) {
+        mImageView = (SubsamplingScaleImageView) view;
+
+        //mHiddenImageView.setImage(ImageSource.uri(uri));
+
+        assert mImageView != null;
+        mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 toggle();
             }
         });
-
-        mComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
-
-        mComicImageView.setImage(ImageSource.uri(coverFilePath));
-
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
 
     @Override

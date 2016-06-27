@@ -15,7 +15,7 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="85dp"
             android:src="@drawable/play_icon"
             android:contentDescription="@string/play_creation_image" />
 
@@ -33,8 +33,8 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:paddingLeft="4dp"
+                android:paddingTop="14dp"
+                android:paddingLeft="8dp"
                 android:maxLines="2"
                 android:text="BRUC3 DAWG's Weekly Trick or Treat"/>
 
