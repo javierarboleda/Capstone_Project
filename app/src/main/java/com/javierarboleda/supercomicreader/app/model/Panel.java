@@ -16,10 +16,11 @@ public class Panel {
     private PointF mTopPane;
     private PointF mBottomPane;
     private float mScale;
+    private int mPage;
 
     public Panel(PointF topLeft, PointF topRight, PointF bottomLeft, PointF bottomRight,
                  PointF leftPane, PointF rightPane, PointF topPane, PointF bottomPane,
-                 float scale) {
+                 float scale, int page) {
 
         this.mTopLeft = topLeft;
         this.mTopRight = topRight;
@@ -30,6 +31,7 @@ public class Panel {
         this.mTopPane = topPane;
         this.mBottomPane = bottomPane;
         this.mScale = scale;
+        this.mPage = page;
 
     }
 
@@ -112,4 +114,11 @@ public class Panel {
         this.mScale = mScale;
     }
 
+    public int getPage() {
+        return mPage;
+    }
+
+    public void setPage(int mPage) {
+        this.mPage = mPage;
+    }
 }

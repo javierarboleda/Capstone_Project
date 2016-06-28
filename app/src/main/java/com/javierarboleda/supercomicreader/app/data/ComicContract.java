@@ -19,8 +19,8 @@ public class ComicContract {
     public static final String F_SLASH = "/";
 
     public static final String PATH_COMIC  = "comic_entry";
-    public static final String PATH_SAVED_PANEL  = "saved_panel";
     public static final String PATH_CREATION  = "creation";
+    public static final String PATH_SAVED_PANEL  = "saved_panel";
     public static final String PATH_MY_CREATION  = "my_creation";
     public static final String PATH_IMAGE  = "image";
     public static final String PATH_FAVORITE  = "favorite";
@@ -71,13 +71,78 @@ public class ComicContract {
     public static final class CreationEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "creation";
-        public static final String COLUMN_NAME_  = "";
+        public static final String COLUMN_NAME_TITLE  = "title";
+        public static final String COLUMN_NAME_AUTHOR  = "author";
+        public static final String COLUMN_NAME_CREATION_DATE  = "creation_date";
+        public static final String COLUMN_NAME_LAST_PANEL_READ  = "last_panel_read";
+        
+        public static final int INDEX_TITLE = 1;
+        public static final int INDEX_AUTHOR = 2;
+        public static final int INDEX_CREATION_DATE = 3;
+        public static final int INDEX_LAST_PANEL_READ = 4;
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendEncodedPath(PATH_CREATION).build();
+
+        public static final String CONTENT_TYPE_DIR = ContentResolver.CURSOR_DIR_BASE_TYPE +
+                F_SLASH + CONTENT_AUTHORITY + F_SLASH + PATH_CREATION;
+
+        // this is for building uri on insertion
+        public static Uri buildCreationDirUri() {
+            return BASE_CONTENT_URI.buildUpon().appendPath(PATH_CREATION).build();
+        }
+
+        // this is for building uri on insertion
+        public static Uri buildCreationUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class SavedPanelEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "saved_panel";
-        public static final String COLUMN_NAME_  = "";
+        public static final String COLUMN_NAME_CREATION_ID  = "creation_id";
+        public static final String COLUMN_NAME_NUMBER  = "number";
+        public static final String COLUMN_NAME_PAGE  = "page";
+        public static final String COLUMN_NAME_TOP_LEFT  = "top_left";
+        public static final String COLUMN_NAME_TOP_RIGHT  = "top_right";
+        public static final String COLUMN_NAME_BOTTOM_LEFT  = "bottom_left";
+        public static final String COLUMN_NAME_BOTTOM_RIGHT  = "bottom_right";
+        public static final String COLUMN_NAME_LEFT_PANE  = "left_pane";
+        public static final String COLUMN_NAME_RIGHT_PANE  = "right_pane";
+        public static final String COLUMN_NAME_TOP_PANE  = "top_pane";
+        public static final String COLUMN_NAME_BOTTOM_PANE  = "bottom_pane";
+
+        public static final int INDEX_CREATION_ID  = 1;
+        public static final int INDEX_NUMBER  = 2;
+        public static final int INDEX_PAGE  = 3;
+        public static final int INDEX_TOP_LEFT  = 4;
+        public static final int INDEX_TOP_RIGHT  = 5;
+        public static final int INDEX_BOTTOM_LEFT  = 6;
+        public static final int INDEX_BOTTOM_RIGHT  = 7;
+        public static final int INDEX_LEFT_PANE  = 8;
+        public static final int INDEX_RIGHT_PANE  = 9;
+        public static final int INDEX_TOP_PANE  = 10;
+        public static final int INDEX_BOTTOM_PANE  = 11;
+
+        public static final Uri CONTENT_URI =
+                BASE_CONTENT_URI.buildUpon().appendEncodedPath(PATH_SAVED_PANEL).build();
+
+        public static final String CONTENT_TYPE_DIR = ContentResolver.CURSOR_DIR_BASE_TYPE +
+                F_SLASH + CONTENT_AUTHORITY + F_SLASH + PATH_SAVED_PANEL;
+
+        public static final String CONTENT_TYPE_ITEM = ContentResolver.CURSOR_ITEM_BASE_TYPE +
+                F_SLASH + CONTENT_AUTHORITY + F_SLASH + PATH_SAVED_PANEL;
+
+        // this is for building uri on insertion
+        public static Uri buildSavedPanelDirUri() {
+            return BASE_CONTENT_URI.buildUpon().appendPath(PATH_SAVED_PANEL).build();
+        }
+
+        // this is for building uri on insertion
+        public static Uri buildSavedPanelUri(long id) {
+            return ContentUris.withAppendedId(CONTENT_URI, id);
+        }
     }
 
     public static final class MyCreationEntry implements BaseColumns {

@@ -1,5 +1,7 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.graphics.PointF;
 import android.os.Bundle;
@@ -7,6 +9,7 @@ import android.os.Handler;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -18,6 +21,7 @@ import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Panel;
+import com.javierarboleda.supercomicreader.app.util.AnimationUtil;
 
 import java.util.ArrayList;
 
@@ -25,91 +29,8 @@ import java.util.ArrayList;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class CreationModeActivity extends AppCompatActivity implements ComicPagerAdapter.Callback {
-
-    /**
-     * Whether or not the system UI should be auto-hidden after
-     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
-     */
-    private static final boolean AUTO_HIDE = true;
-
-    /**
-     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
-     * user interaction before hiding the system UI.
-     */
-    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
-
-    /**
-     * Some older devices needs a small delay between UI widget updates
-     * and a change of the status and navigation bar.
-     */
-    private static final int UI_ANIMATION_DELAY = 300;
-    private final Handler mHideHandler = new Handler();
-    private View mContentView;
-    private final Runnable mHidePart2Runnable = new Runnable() {
-        @SuppressLint("InlinedApi")
-        @Override
-        public void run() {
-            // Delayed removal of status and navigation bar
-
-            // Note that some of these constants are new as of API 16 (Jelly Bean)
-            // and API 19 (KitKat). It is safe to use them, as they are inlined
-            // at compile-time and do nothing on earlier devices.
-
-            WindowManager.LayoutParams attrs = getWindow().getAttributes();
-            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-            getWindow().setAttributes(attrs);
-
-            mContentView.setSystemUiVisibility(
-                      View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    };
-    private View mControlsView;
-    private final Runnable mShowPart2Runnable = new Runnable() {
-        @Override
-        public void run() {
-            // Delayed display of UI elements
-//            ActionBar actionBar = getSupportActionBar();
-//            if (actionBar != null) {
-//                actionBar.show();
-//            }
-
-            WindowManager.LayoutParams attrs = getWindow().getAttributes();
-            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
-            getWindow().setAttributes(attrs);
-
-            mControlsView.setVisibility(View.VISIBLE);
-        }
-    };
-    private boolean mVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
-    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            if (AUTO_HIDE) {
-                delayedHide(AUTO_HIDE_DELAY_MILLIS);
-            }
-            return false;
-        }
-    };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////
+public class CreationModeActivity extends AppCompatActivity implements ComicPagerAdapter.Callback
+{
 
     ViewPager mViewPager;
     private SubsamplingScaleImageView mImageView;
@@ -154,7 +75,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                 break;
             case R.id.play_action_bar_button:
                 if (!mSavedPanels.isEmpty()) {
-                    //animateToPanel(mSavedPanels.get(mPanelPosition));
+                    animateToPanel(mSavedPanels.get(mPanelPosition));
                     mPanelPosition++;
                     if (mPanelPosition == mSavedPanels.size()) {
                         mPanelPosition = 0;
@@ -218,8 +139,6 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     }
 
     private void savePanel() {
-
-        mImageView = (SubsamplingScaleImageView) mViewPager.findViewWithTag(mViewPager.getCurrentItem());
 
         float x, y, scale;
 
@@ -288,7 +207,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
         Panel panel = new Panel(topLeftSourcePointF, topRightSourcePointF,
                 bottomLeftSourcePointF, bottomRightSourcePointF, leftPanePointF, rightPanePointF,
-                topPanePointF, bottomPanePointF, scale);
+                topPanePointF, bottomPanePointF, scale, mViewPager.getCurrentItem());
 
         mSavedPanels.add(panel);
 
@@ -305,6 +224,100 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                         panel.getTopPane().y + " : " +
                         panel.getBottomPane().y
         );
+    }
+
+    private void animateToPanel(final Panel panel) {
+
+        if (panel.getPage() != mViewPager.getCurrentItem()) {
+            mViewPager.setCurrentItem(panel.getPage(), true);
+        }
+
+        final PointF midPointPercentage = panel.getMidpoint();
+        final PointF midPointCoord = new PointF(midPointPercentage.x * mImageView.getSWidth(),
+                midPointPercentage.y * mImageView.getSHeight());
+        final float scale = panel.getScale() * mOriginalScale;
+
+        PointF midPointView = mImageView.sourceToViewCoord(midPointCoord);
+
+        final float screenRatio = (float)mImageView.getWidth() / (float)mImageView.getHeight();
+
+        mHiddenImageView.animateScaleAndCenter(scale, midPointCoord)
+                .withDuration(1)
+                .withEasing(SubsamplingScaleImageView.EASE_OUT_QUAD)
+                .withInterruptible(false).withOnAnimationEventListener(
+                new SubsamplingScaleImageView.OnAnimationEventListener() {
+                    @Override
+                    public void onComplete() {
+
+                        float leftPerc = panel.getLeftPane().x - panel.getTopLeft().x;
+                        float rightPerc = panel.getTopRight().x - panel.getRightPane().x;
+                        float topPerc = panel.getTopPane().y - panel.getTopRight().y;
+                        float bottomPerc = panel.getBottomRight().y - panel.getBottomPane().y;
+
+                        int left = (int) mHiddenImageView.sourceToViewCoord(
+                                panel.getLeftPane().x * mHiddenImageView.getSWidth(), 0).x;
+                        int right = mHiddenImageView.getWidth()
+                                - (int) mHiddenImageView.sourceToViewCoord(
+                                panel.getRightPane().x * mHiddenImageView.getSWidth(), 0).x;
+                        int top = (int) mHiddenImageView.sourceToViewCoord(
+                                0, panel.getTopPane().y * mHiddenImageView.getSHeight()).y;
+                        int bottom = mHiddenImageView.getHeight()
+                                - (int) mHiddenImageView.sourceToViewCoord(
+                                0, panel.getBottomPane().y * mHiddenImageView.getSHeight()).y;
+
+                        animateBorderPanels(left, right, top, bottom);
+
+                        mImageView.animateScaleAndCenter(scale, midPointCoord)
+                                .withDuration(500)
+                                .withEasing(SubsamplingScaleImageView.EASE_OUT_QUAD)
+                                .withInterruptible(false).start();
+                    }
+
+                    @Override
+                    public void onInterruptedByUser() {
+
+                    }
+
+                    @Override
+                    public void onInterruptedByNewAnim() {
+
+                    }
+                }).start();
+
+
+
+//        Log.d("AnimateToPanel", "final mpv:" + midPointView);
+
+
+
+//        Log.d("AnimateToPanel", "mpp:" + midPointPercentage + " mpc:" + midPointCoord +
+//                " scale:" + scale + " mpv:" + midPointView + " ratio:" + screenRatio);
+//
+//        Log.d("AnimateToPanel", "LP:" + leftPerc + " RP:" + rightPerc + " TP:" + topPerc +
+//                " BP:" + bottomPerc);
+//
+//        Log.d("AnimateToPanel", "L:" + left + " R:" + right + " T:" + top + " B:" + bottom);
+
+
+    }
+
+    private void animateBorderPanels(int left, int right, int top, int bottom) {
+        ValueAnimator va1 =
+                AnimationUtil.getTopBottomPanelValueAnimator(mTopPanel, top);
+
+        ValueAnimator va2 =
+                AnimationUtil.getTopBottomPanelValueAnimator(mBottomPanel, bottom);
+
+        ValueAnimator va3 =
+                AnimationUtil.getLeftRightPanelValueAnimator(mLeftPanel, left);
+
+        ValueAnimator va4 =
+                AnimationUtil.getLeftRightPanelValueAnimator(mRightPanel, right);
+
+        AnimatorSet set = new AnimatorSet();
+        set.setDuration(400);
+        set.playTogether(va1, va2, va3, va4);
+        set.start();
     }
 
     @Override
@@ -331,7 +344,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
         mViewPager = (ViewPager) findViewById(R.id.viewPager);
         mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
-
+        //mViewPager.setPageTransformer(true, new CustomPageTransformer());
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -340,7 +353,8 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
             @Override
             public void onPageSelected(int position) {
-
+                Log.d("ViewPager", "pos=" + position);
+                loadImageViews();
             }
 
             @Override
@@ -348,7 +362,6 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
             }
         });
-
     }
 
     private void init() {
@@ -361,13 +374,28 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         mActivePanels = "B/T";
         mSavedPanels = new ArrayList<>();
         mPanelPosition = 0;
-
-        //testLoadImage();
     }
 
     @Override
-    public void onViewLoaded(View view, String uri) {
-        mImageView = (SubsamplingScaleImageView) view;
+    public void onViewLoaded() {
+
+        if (mImageView == null) {
+            loadImageViews();
+        }
+
+        Log.d("ViewLoaded", mImageView == null ? "null" : "not null");
+        Log.d("ViewLoaded", mHiddenImageView == null ? "null" : "not null");
+    }
+
+    private void loadImageViews() {
+
+        mImageView = (SubsamplingScaleImageView)
+                mViewPager.findViewWithTag("v" + mViewPager.getCurrentItem());
+
+        mHiddenImageView = (SubsamplingScaleImageView)
+                mViewPager.findViewWithTag("h" + mViewPager.getCurrentItem());
+
+        Log.d("ViewPager", "currentItem=" + mViewPager.getCurrentItem());
 
         //mHiddenImageView.setImage(ImageSource.uri(uri));
 
@@ -378,6 +406,64 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                 toggle();
             }
         });
+
+        mImageView.setOnImageEventListener(new SubsamplingScaleImageView.OnImageEventListener() {
+            @Override
+            public void onImageLoaded() {
+                mOriginalScale = mImageView.getScale();
+            }
+            @Override
+            public void onReady() {
+
+            }
+            @Override
+            public void onPreviewLoadError(Exception e) {
+
+            }
+            @Override
+            public void onImageLoadError(Exception e) {
+
+            }
+            @Override
+            public void onTileLoadError(Exception e) {
+
+            }
+        });
+
+        final GestureDetector gestureDetector = new GestureDetector(this,
+                new GestureDetector.SimpleOnGestureListener() {
+
+                    @Override
+                    public boolean onSingleTapConfirmed(MotionEvent e) {
+
+
+                        return true;
+                    }
+
+                    @Override
+                    public void onLongPress(MotionEvent e) {
+
+                        mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1, true);
+
+                    }
+
+                    @Override
+                    public boolean onDoubleTap(MotionEvent e) {
+                        PointF sCoord = mImageView.viewToSourceCoord(e.getX(), e.getY());
+
+                        init();
+
+                        return true;
+                    }
+                });
+
+        mImageView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return gestureDetector.onTouchEvent(motionEvent);
+            }
+        });
+
     }
 
     @Override
@@ -432,4 +518,87 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
+
+    /**
+     * Whether or not the system UI should be auto-hidden after
+     * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
+     */
+    private static final boolean AUTO_HIDE = true;
+
+    /**
+     * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after
+     * user interaction before hiding the system UI.
+     */
+    private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
+
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 300;
+    private final Handler mHideHandler = new Handler();
+    private View mContentView;
+    private final Runnable mHidePart2Runnable = new Runnable() {
+        @SuppressLint("InlinedApi")
+        @Override
+        public void run() {
+            // Delayed removal of status and navigation bar
+
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+
+            WindowManager.LayoutParams attrs = getWindow().getAttributes();
+            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            getWindow().setAttributes(attrs);
+
+            mContentView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LOW_PROFILE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    };
+    private View mControlsView;
+    private final Runnable mShowPart2Runnable = new Runnable() {
+        @Override
+        public void run() {
+            // Delayed display of UI elements
+//            ActionBar actionBar = getSupportActionBar();
+//            if (actionBar != null) {
+//                actionBar.show();
+//            }
+
+            WindowManager.LayoutParams attrs = getWindow().getAttributes();
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            getWindow().setAttributes(attrs);
+
+            mControlsView.setVisibility(View.VISIBLE);
+        }
+    };
+    private boolean mVisible;
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
+    /**
+     * Touch listener to use for in-layout UI controls to delay hiding the
+     * system UI. This is to prevent the jarring behavior of controls going away
+     * while interacting with activity UI.
+     */
+    private final View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            if (AUTO_HIDE) {
+                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+            }
+            return false;
+        }
+    };
+
+
 }

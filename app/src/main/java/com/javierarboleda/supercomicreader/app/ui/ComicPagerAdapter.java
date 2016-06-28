@@ -39,6 +39,13 @@ public class ComicPagerAdapter extends PagerAdapter {
         SubsamplingScaleImageView mComicImageView =
                 (SubsamplingScaleImageView) layout.findViewById(R.id.comic_image_view);
 
+        SubsamplingScaleImageView mHiddenComicImageView =
+                (SubsamplingScaleImageView) layout.findViewById(R.id.comicHiddenImageView);
+
+        mHiddenComicImageView.setImage(ImageSource.uri(coverFilePath));
+        mHiddenComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
+        mHiddenComicImageView.setTag("h" + position);
+
         // Set up the user interaction to manually show or hide the system UI.
         assert mComicImageView != null;
         mComicImageView.setOnClickListener(new View.OnClickListener() {
@@ -49,12 +56,10 @@ public class ComicPagerAdapter extends PagerAdapter {
         });
 
         mComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
-
         mComicImageView.setImage(ImageSource.uri(coverFilePath));
+        mComicImageView.setTag("v" + position);
 
-        mComicImageView.setTag(position);
-
-        ((Callback) mContext).onViewLoaded(mComicImageView, coverFilePath);
+        ((Callback) mContext).onViewLoaded();
 
         return layout;
     }
@@ -75,7 +80,7 @@ public class ComicPagerAdapter extends PagerAdapter {
     }
 
     public interface Callback {
-        void onViewLoaded(View view, String uri);
+        void onViewLoaded();
     }
 
 }
