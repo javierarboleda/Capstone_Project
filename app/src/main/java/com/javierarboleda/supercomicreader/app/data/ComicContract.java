@@ -71,15 +71,17 @@ public class ComicContract {
     public static final class CreationEntry implements BaseColumns {
 
         public static final String TABLE_NAME = "creation";
+        public static final String COLUMN_NAME_COMIC_ID  = "comic_id";
         public static final String COLUMN_NAME_TITLE  = "title";
         public static final String COLUMN_NAME_AUTHOR  = "author";
         public static final String COLUMN_NAME_CREATION_DATE  = "creation_date";
         public static final String COLUMN_NAME_LAST_PANEL_READ  = "last_panel_read";
         
-        public static final int INDEX_TITLE = 1;
-        public static final int INDEX_AUTHOR = 2;
-        public static final int INDEX_CREATION_DATE = 3;
-        public static final int INDEX_LAST_PANEL_READ = 4;
+        public static final int INDEX_COMIC_ID = 1;
+        public static final int INDEX_TITLE = 2;
+        public static final int INDEX_AUTHOR = 3;
+        public static final int INDEX_CREATION_DATE = 4;
+        public static final int INDEX_LAST_PANEL_READ = 5;
 
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendEncodedPath(PATH_CREATION).build();

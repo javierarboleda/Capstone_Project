@@ -51,6 +51,10 @@ public class ComicDbHelper extends SQLiteOpenHelper {
                         CreationEntry.COLUMN_NAME_AUTHOR + TEXT_TYPE + COMMA_SEP +
                         CreationEntry.COLUMN_NAME_CREATION_DATE + INTEGER_TYPE + COMMA_SEP +
                         CreationEntry.COLUMN_NAME_LAST_PANEL_READ + INTEGER_TYPE +
+
+                        // Set up foreign key
+                        " FOREIGN KEY (" + CreationEntry.COLUMN_NAME_COMIC_ID + ") REFERENCES " +
+                        ComicEntry.TABLE_NAME + " (" + ComicEntry._ID + ")" +
                 " )";
 
         final String SQL_CREATE_SAVED_PANEL_TABLE =
@@ -67,6 +71,10 @@ public class ComicDbHelper extends SQLiteOpenHelper {
                         SavedPanelEntry.COLUMN_NAME_RIGHT_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_TOP_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE + INTEGER_TYPE + NOT_NULL +
+
+                        // Set up foreign key
+                        " FOREIGN KEY (" + SavedPanelEntry.COLUMN_NAME_CREATION_ID + ") REFERENCES " +
+                        CreationEntry.TABLE_NAME + " (" + CreationEntry._ID + ")" +
                 " )";
 
         db.execSQL(SQL_CREATE_COMIC_TABLE);

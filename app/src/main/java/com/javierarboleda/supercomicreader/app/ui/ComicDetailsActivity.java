@@ -8,12 +8,14 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
@@ -50,16 +52,30 @@ public class ComicDetailsActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), CreationModeActivity.class);
-                intent.putExtra("comic", mComic);
-                startActivity(intent);
+                showDialog();
             }
         });
 
-
-
         setUpRecyclerView();
 
+    }
+
+    private void showDialog() {
+
+        new MaterialDialog.Builder(this)
+            .title(R.string.input)
+            .content(R.string.input_content)
+            .inputType(InputType.TYPE_CLASS_TEXT)
+            .input(R.string.input_hint, R.string.input_prefill,
+                new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        Intent intent =
+                                new Intent(getApplicationContext(), CreationModeActivity.class);
+                        intent.putExtra("comic", mComic);
+                        startActivity(intent);
+                }
+            }).show();
     }
 
     private void setUpRecyclerView() {

@@ -83,7 +83,7 @@ public class TestComicDb extends AndroidTestCase {
             comicColumnHashSet.remove(columnName);
         } while(c.moveToNext());
 
-        // if this fails, it means that your database doesn't contain all of the required location
+        // if this fails, it means that your database doesn't contain all of the required comic
         // entry columns
         assertTrue("Error: The database doesn't contain all of the required comic entry columns.",
                 comicColumnHashSet.isEmpty());

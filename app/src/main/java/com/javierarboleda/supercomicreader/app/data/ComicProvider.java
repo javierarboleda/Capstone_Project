@@ -19,6 +19,8 @@ public class ComicProvider extends ContentProvider {
     private ComicDbHelper mComicDbHelper;
 
     static final int COMIC = 100;
+    static final int CREATION = 200;
+    static final int SAVED_PANEL = 300;
 
     @Override
     public boolean onCreate() {
@@ -61,6 +63,10 @@ public class ComicProvider extends ContentProvider {
         switch (match) {
             case COMIC:
                 return ComicContract.ComicEntry.CONTENT_TYPE_DIR;
+            case CREATION:
+                return ComicContract.CreationEntry.CONTENT_TYPE_DIR;
+            case SAVED_PANEL:
+                return ComicContract.SavedPanelEntry.CONTENT_TYPE_DIR;
             default:
                 throw new UnsupportedOperationException("Unknown ri: " + uri);
         }
@@ -84,6 +90,23 @@ public class ComicProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
+            case CREATION: {
+                long _id = db.insert(ComicContract.CreationEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = ComicContract.CreationEntry.buildCreationUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+            case SAVED_PANEL: {
+                long _id = db.insert(ComicContract.SavedPanelEntry.TABLE_NAME, null, values);
+                if ( _id > 0 )
+                    returnUri = ComicContract.SavedPanelEntry.buildSavedPanelUri(_id);
+                else
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                break;
+            }
+
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -106,6 +129,14 @@ public class ComicProvider extends ContentProvider {
             case COMIC:
                 rowsDeleted = db.delete(
                         ComicContract.ComicEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case CREATION:
+                rowsDeleted = db.delete(
+                        ComicContract.CreationEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case SAVED_PANEL:
+                rowsDeleted = db.delete(
+                        ComicContract.SavedPanelEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -130,6 +161,12 @@ public class ComicProvider extends ContentProvider {
             case COMIC:
                 rowsUpdated = db.update(ComicContract.ComicEntry.TABLE_NAME, values, selection,
                         selectionArgs);
+            case CREATION:
+                rowsUpdated = db.update(ComicContract.CreationEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+            case SAVED_PANEL:
+                rowsUpdated = db.update(ComicContract.SavedPanelEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -148,6 +185,8 @@ public class ComicProvider extends ContentProvider {
         final String authority = ComicContract.CONTENT_AUTHORITY;
 
         matcher.addURI(authority, ComicContract.PATH_COMIC, COMIC);
+        matcher.addURI(authority, ComicContract.PATH_CREATION, CREATION);
+        matcher.addURI(authority, ComicContract.PATH_SAVED_PANEL, SAVED_PANEL);
 
         return matcher;
     }
