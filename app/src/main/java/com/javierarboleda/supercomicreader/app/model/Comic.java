@@ -15,6 +15,7 @@ import java.util.List;
  */
 public class Comic implements Parcelable {
 
+    private int mId;
     private String mTitle;
     private String mFile;
     private String mCover;
@@ -23,8 +24,9 @@ public class Comic implements Parcelable {
     private String mLastCreationRead;
     private List<String> mImagePaths;
 
-    public Comic(String mTitle, String mFile, String mCover, String mPages, String mLastPageRead,
+    public Comic(int id, String mTitle, String mFile, String mCover, String mPages, String mLastPageRead,
                  String mLastCreationRead) {
+        this.mId = id;
         this.mTitle = mTitle;
         this.mFile = mFile;
         this.mCover = mCover;
@@ -41,6 +43,7 @@ public class Comic implements Parcelable {
     }
 
     public Comic(Parcel in) {
+        mId = in.readInt();
         mTitle = in.readString();
         mFile = in.readString();
         mCover = in.readString();
@@ -70,6 +73,7 @@ public class Comic implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mId);
         dest.writeString(mTitle);
         dest.writeString(mFile);
         dest.writeString(mCover);
@@ -77,6 +81,14 @@ public class Comic implements Parcelable {
         dest.writeString(mLastPageRead);
         dest.writeString(mLastCreationRead);
         dest.writeList(mImagePaths);
+    }
+
+    public int getId() {
+        return mId;
+    }
+
+    public void setId(int mId) {
+        this.mId = mId;
     }
 
     public String getTitle() {

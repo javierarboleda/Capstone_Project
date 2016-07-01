@@ -41,6 +41,7 @@ public class ComicContract {
         public static final String COLUMN_NAME_LAST_PAGE_READ  = "last_page_read";
         public static final String COLUMN_NAME_LAST_CREATION_READ  = "last_creation_read";
 
+        public static final int INDEX_ID = 0;
         public static final int INDEX_TITLE = 1;
         public static final int INDEX_FILE = 2;
         public static final int INDEX_COVER = 3;
@@ -76,7 +77,8 @@ public class ComicContract {
         public static final String COLUMN_NAME_AUTHOR  = "author";
         public static final String COLUMN_NAME_CREATION_DATE  = "creation_date";
         public static final String COLUMN_NAME_LAST_PANEL_READ  = "last_panel_read";
-        
+
+        public static final int INDEX_ID = 0;
         public static final int INDEX_COMIC_ID = 1;
         public static final int INDEX_TITLE = 2;
         public static final int INDEX_AUTHOR = 3;
@@ -115,6 +117,7 @@ public class ComicContract {
         public static final String COLUMN_NAME_TOP_PANE  = "top_pane";
         public static final String COLUMN_NAME_BOTTOM_PANE  = "bottom_pane";
 
+        public static final int INDEX_ID = 0;
         public static final int INDEX_CREATION_ID  = 1;
         public static final int INDEX_NUMBER  = 2;
         public static final int INDEX_PAGE  = 3;

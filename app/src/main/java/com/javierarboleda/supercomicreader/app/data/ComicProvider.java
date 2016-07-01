@@ -46,6 +46,28 @@ public class ComicProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
+           case CREATION:
+                retCursor = mComicDbHelper.getReadableDatabase().query(
+                        ComicContract.CreationEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+           case SAVED_PANEL:
+                retCursor = mComicDbHelper.getReadableDatabase().query(
+                        ComicContract.SavedPanelEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }

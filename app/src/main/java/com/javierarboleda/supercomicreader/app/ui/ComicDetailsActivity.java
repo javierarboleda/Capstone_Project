@@ -1,11 +1,19 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -19,13 +27,20 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
+import com.javierarboleda.supercomicreader.app.data.ComicContract;
 import com.javierarboleda.supercomicreader.app.model.Comic;
+import com.javierarboleda.supercomicreader.app.model.Creation;
+import com.javierarboleda.supercomicreader.app.model.SavedPanel;
 
-public class ComicDetailsActivity extends AppCompatActivity {
+import static com.javierarboleda.supercomicreader.app.data.ComicContract.CreationEntry;
 
-    Comic mComic;
-    SubsamplingScaleImageView mBackgroundImageView;
+public class ComicDetailsActivity extends FragmentActivity
+        implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private Comic mComic;
+    private SubsamplingScaleImageView mBackgroundImageView;
+    private static final int CREATION_LOADER = 0;
+    private static final int SAVED_PANEL_LOADER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +71,10 @@ public class ComicDetailsActivity extends AppCompatActivity {
             }
         });
 
-        setUpRecyclerView();
+        getSupportLoaderManager().initLoader(CREATION_LOADER, null, ComicDetailsActivity.this);
+
+//
+//        setUpRecyclerView();
 
     }
 
@@ -70,16 +88,43 @@ public class ComicDetailsActivity extends AppCompatActivity {
                 new MaterialDialog.InputCallback() {
                     @Override
                     public void onInput(MaterialDialog dialog, CharSequence input) {
+
+                        Creation creation = insertCreation(input.toString());
+
                         Intent intent =
                                 new Intent(getApplicationContext(), CreationModeActivity.class);
                         intent.putExtra("comic", mComic);
+                        intent.putExtra("creation", creation);
                         startActivity(intent);
                 }
             }).show();
     }
 
-    private void setUpRecyclerView() {
-        ComicDetailsAdapter comicDetailsAdapter= new ComicDetailsAdapter();
+    private Creation insertCreation(String input) {
+
+        int comicId = mComic.getId();
+        String title = input;
+        String author = "";
+        int date = 0;
+        int lastPanelRead = 0;
+
+        ContentValues creationValues = new ContentValues();
+
+        creationValues.put(CreationEntry.COLUMN_NAME_COMIC_ID, comicId);
+        creationValues.put(CreationEntry.COLUMN_NAME_TITLE, title);
+        creationValues.put(CreationEntry.COLUMN_NAME_AUTHOR, author);
+        creationValues.put(CreationEntry.COLUMN_NAME_CREATION_DATE, date);
+        creationValues.put(CreationEntry.COLUMN_NAME_LAST_PANEL_READ, lastPanelRead);
+
+        Uri uri = this.getContentResolver().insert(CreationEntry.CONTENT_URI, creationValues);
+
+        return new Creation((int) ContentUris.parseId(uri), comicId, input, author,
+                date, lastPanelRead);
+
+    }
+
+    private void setUpRecyclerView(Cursor cursor) {
+        ComicDetailsAdapter comicDetailsAdapter= new ComicDetailsAdapter(this, cursor, mComic);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
@@ -127,23 +172,64 @@ public class ComicDetailsActivity extends AppCompatActivity {
         });
     }
 
-    public static class ComicDetailsAdapter extends RecyclerView.Adapter<ComicDetailsAdapter.ViewHolder> {
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        public ComicDetailsAdapter() {
+        switch (id) {
+            case CREATION_LOADER:
+                return new CursorLoader(
+                        this,
+                        CreationEntry.buildCreationDirUri(),
+                        null,
+                        CreationEntry.COLUMN_NAME_COMIC_ID + " = ?",
+                        new String[]{String.valueOf(mComic.getId())},
+                        null
+                );case SAVED_PANEL_LOADER:
+                return new CursorLoader(
+                        this,
+                        ComicContract.SavedPanelEntry.buildSavedPanelDirUri(),
+                        null,
+                        ComicContract.SavedPanelEntry.COLUMN_NAME_CREATION_ID + " = ?",
+                        new String[]{String.valueOf(mComic.getId())},
+                        null
+                );
+            default:
+                return null;
+        }
+    }
 
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        setUpRecyclerView(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    public static class ComicDetailsAdapter extends
+            RecyclerView.Adapter<ComicDetailsAdapter.ViewHolder> {
+
+        private Cursor mCursor;
+        private Context mContext;
+        private Comic mComic;
+
+        public ComicDetailsAdapter(Context context, Cursor cursor, Comic comic) {
+            mContext = context;
+            mCursor = cursor;
+            mComic = comic;
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
 
-//            public final View mView;
-//            public final ImageView mImageView;
-//            public final TextView mTextView;
+            public final TextView mTextView;
+            public final View mPlayIconView;
 
             public ViewHolder(View view) {
                 super(view);
-//                mView = view;
-//                mImageView = (ImageView) view.findViewById(R.id.comic_image_view);
-//                mTextView = (TextView) view.findViewById(android.R.id.text1);
+                mTextView = (TextView) view.findViewById(R.id.text_view);
+                mPlayIconView = view.findViewById(R.id.play_icon);
             }
 
             @Override
@@ -163,11 +249,45 @@ public class ComicDetailsActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             Log.d("bindview", "position " + position);
+
+            mCursor.moveToPosition(position);
+
+            int id = mCursor.getInt(CreationEntry.INDEX_ID);
+            String title = mCursor.getString(CreationEntry.INDEX_TITLE);
+            String author = mCursor.getString(CreationEntry.INDEX_AUTHOR);
+            int creationDate = mCursor.getInt(CreationEntry.INDEX_CREATION_DATE);
+            int lastPanelRead = mCursor.getInt(CreationEntry.INDEX_LAST_PANEL_READ);
+
+            final Creation creation = new Creation(id, mComic.getId(), title, author, creationDate,
+                    lastPanelRead);
+
+            TextView textView = (TextView) holder.mTextView;
+            textView.setText(title);
+
+            holder.mPlayIconView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = createCreationModeActivityIntent(creation);
+                    mContext.startActivity(intent);
+                }
+            });
+
+        }
+
+        private Intent createCreationModeActivityIntent(Creation creation) {
+
+            //todo create a callback, pass this creation, loadcursor for saved_panels,
+            // put panels in arraylist and pass it to intent
+
+            Intent intent = new Intent(mContext, CreationModeActivity.class);
+            intent.putExtra("creation", creation);
+            intent.putExtra("comic", mComic);
+            return intent;
         }
 
         @Override
         public int getItemCount() {
-            return 20;
+            return mCursor.getCount();
         }
     }
 

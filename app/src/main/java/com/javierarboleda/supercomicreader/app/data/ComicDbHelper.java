@@ -22,8 +22,8 @@ public class ComicDbHelper extends SQLiteOpenHelper {
     private static final String TEXT_TYPE = " TEXT";
     private static final String INTEGER_TYPE = " INTEGER";
     private static final String REAL_TYPE = " REAL";
-    public static final String NOT_NULL = "NOT NULL";
-    public static final String NOT_NULL_UNIQUE = "NOT NULL UNIQUE";
+    public static final String NOT_NULL = " NOT NULL";
+    public static final String NOT_NULL_UNIQUE = " NOT NULL UNIQUE";
     private static final String COMMA_SEP = ",";
 
     public ComicDbHelper(Context context) {
@@ -47,10 +47,11 @@ public class ComicDbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_CREATION_TABLE =
                 "CREATE TABLE " + CreationEntry.TABLE_NAME + " (" +
                         CreationEntry._ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
+                        CreationEntry.COLUMN_NAME_COMIC_ID + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         CreationEntry.COLUMN_NAME_TITLE + TEXT_TYPE + NOT_NULL_UNIQUE + COMMA_SEP +
                         CreationEntry.COLUMN_NAME_AUTHOR + TEXT_TYPE + COMMA_SEP +
                         CreationEntry.COLUMN_NAME_CREATION_DATE + INTEGER_TYPE + COMMA_SEP +
-                        CreationEntry.COLUMN_NAME_LAST_PANEL_READ + INTEGER_TYPE +
+                        CreationEntry.COLUMN_NAME_LAST_PANEL_READ + INTEGER_TYPE + COMMA_SEP +
 
                         // Set up foreign key
                         " FOREIGN KEY (" + CreationEntry.COLUMN_NAME_COMIC_ID + ") REFERENCES " +
@@ -70,7 +71,7 @@ public class ComicDbHelper extends SQLiteOpenHelper {
                         SavedPanelEntry.COLUMN_NAME_LEFT_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_RIGHT_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_TOP_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE + INTEGER_TYPE + NOT_NULL +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
 
                         // Set up foreign key
                         " FOREIGN KEY (" + SavedPanelEntry.COLUMN_NAME_CREATION_ID + ") REFERENCES " +

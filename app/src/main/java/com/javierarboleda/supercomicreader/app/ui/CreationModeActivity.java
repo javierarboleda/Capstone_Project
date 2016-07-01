@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.model.Comic;
+import com.javierarboleda.supercomicreader.app.model.Creation;
 import com.javierarboleda.supercomicreader.app.model.Panel;
 import com.javierarboleda.supercomicreader.app.util.AnimationUtil;
 
@@ -36,6 +37,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private SubsamplingScaleImageView mImageView;
     private SubsamplingScaleImageView mHiddenImageView;
     private Comic mComic;
+    private Creation mCreation;
     private View mTopPanel;
     private View mBottomPanel;
     private View mLeftPanel;
@@ -325,6 +327,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         super.onCreate(savedInstanceState);
 
         mComic = getIntent().getParcelableExtra("comic");
+        mCreation = getIntent().getParcelableExtra("creation");
 
         setContentView(R.layout.activity_creation_mode);
 

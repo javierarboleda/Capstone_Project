@@ -146,13 +146,11 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
             public final View mView;
             public final ImageView mImageView;
-//            public final TextView mTextView;
 
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
                 mImageView = (ImageView) view.findViewById(R.id.comic_image_view);
-//                mTextView = (TextView) view.findViewById(android.R.id.text1);
             }
 
             @Override
@@ -189,6 +187,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             mCursor.moveToPosition(position);
 
             final Comic comic = new Comic(
+                    mCursor.getInt(ComicContract.ComicEntry.INDEX_ID),
                     mCursor.getString(ComicContract.ComicEntry.INDEX_TITLE),
                     mCursor.getString(ComicContract.ComicEntry.INDEX_FILE),
                     mCursor.getString(ComicContract.ComicEntry.INDEX_COVER),
@@ -211,7 +210,6 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             holder.mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("hi", comic.getCover());
                     Intent intent = createDetailComicDetailsActivityIntent(comic);
                     mContext.startActivity(intent);
                 }
@@ -222,12 +220,8 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
          * Helper method for creating a ComicDetailsActivity intent
          */
         private Intent createDetailComicDetailsActivityIntent(Comic comic) {
-
             Intent intent = new Intent(mContext, ComicDetailsActivity.class);
-
             intent.putExtra("comic", comic);
-//            intent.putExtra(MovieDbUtil.API_KEY_PARAM, apiKey);
-
             return intent;
         }
 
