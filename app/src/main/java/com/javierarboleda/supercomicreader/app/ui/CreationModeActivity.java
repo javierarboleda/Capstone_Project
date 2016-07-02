@@ -15,13 +15,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Creation;
 import com.javierarboleda.supercomicreader.app.model.Panel;
+import com.javierarboleda.supercomicreader.app.model.SavedPanel;
 import com.javierarboleda.supercomicreader.app.util.AnimationUtil;
 
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private SubsamplingScaleImageView mHiddenImageView;
     private Comic mComic;
     private Creation mCreation;
+    private ArrayList<SavedPanel> mSavedPanels;
     private View mTopPanel;
     private View mBottomPanel;
     private View mLeftPanel;
@@ -45,7 +46,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private Menu mMenu;
     private int mUnitSize;
     private String mActivePanels;
-    private ArrayList<Panel> mSavedPanels;
+//    private ArrayList<Panel> mSavedPanelsOld;
     private float mOriginalScale;
     private int mPanelPosition;
 
@@ -207,28 +208,50 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         bottomPanePointF.y =
                 bottomPanePointF.y / (float) mImageView.getSHeight();
 
-        Panel panel = new Panel(topLeftSourcePointF, topRightSourcePointF,
-                bottomLeftSourcePointF, bottomRightSourcePointF, leftPanePointF, rightPanePointF,
-                topPanePointF, bottomPanePointF, scale, mViewPager.getCurrentItem());
+        SavedPanel savedPanel = new SavedPanel(
+                                        0,
+                                        mCreation.getId(),
+                                        0,
+                                        mViewPager.getCurrentItem(),
+                                        topLeftSourcePointF.x,
+                                        topLeftSourcePointF.y,
+                                        topRightSourcePointF.x,
+                                        topRightSourcePointF.y,
+                                        bottomLeftSourcePointF.x,
+                                        bottomLeftSourcePointF.y,
+                                        bottomRightSourcePointF.x,
+                                        bottomRightSourcePointF.y,
+                                        leftPanePointF.x,
+                                        rightPanePointF.x,
+                                        topPanePointF.y,
+                                        bottomPanePointF.y,
+                                        scale
+                                    );
 
-        mSavedPanels.add(panel);
+        mSavedPanels.add(savedPanel);
 
-        Log.d("SavedPanelImage",
-                panel.getTopLeft() + " : " +
-                        panel.getTopRight() + " : " +
-                        panel.getBottomLeft() + " : " +
-                        panel.getBottomRight() + " : " +
-                        panel.getScale()
-        );
-        Log.d("SavedPanelBorders",
-                panel.getLeftPane().x + " : " +
-                        panel.getRightPane().x + " : " +
-                        panel.getTopPane().y + " : " +
-                        panel.getBottomPane().y
-        );
+//        Panel panel = new Panel(topLeftSourcePointF, topRightSourcePointF,
+//                bottomLeftSourcePointF, bottomRightSourcePointF, leftPanePointF, rightPanePointF,
+//                topPanePointF, bottomPanePointF, scale, mViewPager.getCurrentItem());
+//
+//        mSavedPanelsOld.add(panel);
+
+//        Log.d("SavedPanelImage",
+//                panel.getTopLeft() + " : " +
+//                        panel.getTopRight() + " : " +
+//                        panel.getBottomLeft() + " : " +
+//                        panel.getBottomRight() + " : " +
+//                        panel.getScale()
+//        );
+//        Log.d("SavedPanelBorders",
+//                panel.getLeftPane().x + " : " +
+//                        panel.getRightPane().x + " : " +
+//                        panel.getTopPane().y + " : " +
+//                        panel.getBottomPane().y
+//        );
     }
 
-    private void animateToPanel(final Panel panel) {
+    private void animateToPanel(final SavedPanel panel) {
 
         if (panel.getPage() != mViewPager.getCurrentItem()) {
             mViewPager.setCurrentItem(panel.getPage(), true);
@@ -251,21 +274,21 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                     @Override
                     public void onComplete() {
 
-                        float leftPerc = panel.getLeftPane().x - panel.getTopLeft().x;
-                        float rightPerc = panel.getTopRight().x - panel.getRightPane().x;
-                        float topPerc = panel.getTopPane().y - panel.getTopRight().y;
-                        float bottomPerc = panel.getBottomRight().y - panel.getBottomPane().y;
+//                        float leftPerc = panel.getLeftPane().x - panel.getTopLeft().x;
+//                        float rightPerc = panel.getTopRight().x - panel.getRightPane().x;
+//                        float topPerc = panel.getTopPane().y - panel.getTopRight().y;
+//                        float bottomPerc = panel.getBottomRight().y - panel.getBottomPane().y;
 
                         int left = (int) mHiddenImageView.sourceToViewCoord(
-                                panel.getLeftPane().x * mHiddenImageView.getSWidth(), 0).x;
+                                panel.getLeftPane() * mHiddenImageView.getSWidth(), 0).x;
                         int right = mHiddenImageView.getWidth()
                                 - (int) mHiddenImageView.sourceToViewCoord(
-                                panel.getRightPane().x * mHiddenImageView.getSWidth(), 0).x;
+                                panel.getRightPane() * mHiddenImageView.getSWidth(), 0).x;
                         int top = (int) mHiddenImageView.sourceToViewCoord(
-                                0, panel.getTopPane().y * mHiddenImageView.getSHeight()).y;
+                                0, panel.getTopPane() * mHiddenImageView.getSHeight()).y;
                         int bottom = mHiddenImageView.getHeight()
                                 - (int) mHiddenImageView.sourceToViewCoord(
-                                0, panel.getBottomPane().y * mHiddenImageView.getSHeight()).y;
+                                0, panel.getBottomPane() * mHiddenImageView.getSHeight()).y;
 
                         animateBorderPanels(left, right, top, bottom);
 
@@ -328,6 +351,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
         mComic = getIntent().getParcelableExtra("comic");
         mCreation = getIntent().getParcelableExtra("creation");
+        mSavedPanels = getIntent().getParcelableArrayListExtra("saved_panels");
 
         setContentView(R.layout.activity_creation_mode);
 

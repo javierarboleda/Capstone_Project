@@ -8,12 +8,12 @@ import android.os.Parcelable;
  */
 public class Creation implements Parcelable{
 
-    public int mId;
-    public int mComicId;
-    public String mTitle;
-    public String mAuthor;
-    public int mCreationDate;
-    public int mLastPanelRead;
+    private int mId;
+    private int mComicId;
+    private String mTitle;
+    private String mAuthor;
+    private int mCreationDate;
+    private int mLastPanelRead;
 
     public Creation(int id, int comicId, String title, String author, int creationDate, int lastPanelRead) {
         mId = id;

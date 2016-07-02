@@ -31,21 +31,38 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <TextView
-                android:id="@+id/text_view"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:paddingLeft="8dp"
-                android:maxLines="2"
-                android:text="BRUC3 DAWG's Weekly Trick or Treat"/>
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/text_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="8"
+                    android:paddingTop="14dp"
+                    android:paddingLeft="8dp"
+                    android:maxLines="2"
+                    android:text="BRUC3 DAWG's Weekly Trick or Treat"/>
+                <ImageView
+                    android:id="@+id/edit_creation_image_view"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginRight="12dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginLeft="8dp"
+                    android:src="@drawable/ic_edit"/>
+            </LinearLayout>
+
 
             <View
                 style="@style/divider"
                 android:layout_alignParentBottom="true"/>
         </RelativeLayout>
 
-
     </LinearLayout>
+
 
 </LinearLayout>

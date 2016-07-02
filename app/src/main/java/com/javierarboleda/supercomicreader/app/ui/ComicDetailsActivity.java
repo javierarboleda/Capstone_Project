@@ -32,12 +32,17 @@ import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Creation;
 import com.javierarboleda.supercomicreader.app.model.SavedPanel;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+import static com.javierarboleda.supercomicreader.app.data.ComicContract.*;
 import static com.javierarboleda.supercomicreader.app.data.ComicContract.CreationEntry;
 
 public class ComicDetailsActivity extends FragmentActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private Comic mComic;
+    private Creation mCreation;
     private SubsamplingScaleImageView mBackgroundImageView;
     private static final int CREATION_LOADER = 0;
     private static final int SAVED_PANEL_LOADER = 1;
@@ -176,7 +181,7 @@ public class ComicDetailsActivity extends FragmentActivity
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
         switch (id) {
-            case CREATION_LOADER:
+            case CREATION_LOADER: {
                 return new CursorLoader(
                         this,
                         CreationEntry.buildCreationDirUri(),
@@ -184,15 +189,18 @@ public class ComicDetailsActivity extends FragmentActivity
                         CreationEntry.COLUMN_NAME_COMIC_ID + " = ?",
                         new String[]{String.valueOf(mComic.getId())},
                         null
-                );case SAVED_PANEL_LOADER:
+                );
+            }
+            case SAVED_PANEL_LOADER: {
                 return new CursorLoader(
                         this,
-                        ComicContract.SavedPanelEntry.buildSavedPanelDirUri(),
+                        SavedPanelEntry.buildSavedPanelDirUri(),
                         null,
-                        ComicContract.SavedPanelEntry.COLUMN_NAME_CREATION_ID + " = ?",
-                        new String[]{String.valueOf(mComic.getId())},
-                        null
+                        SavedPanelEntry.COLUMN_NAME_CREATION_ID + " = ?",
+                        new String[]{String.valueOf(mCreation.getId())},
+                        SavedPanelEntry.COLUMN_NAME_NUMBER + " ASC"
                 );
+            }
             default:
                 return null;
         }
@@ -200,7 +208,60 @@ public class ComicDetailsActivity extends FragmentActivity
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        setUpRecyclerView(data);
+
+        int id = loader.getId();
+
+        switch (id) {
+            case CREATION_LOADER: {
+                setUpRecyclerView(data);
+                break;
+            }
+            case SAVED_PANEL_LOADER: {
+                ArrayList<SavedPanel> savedPanels = getSavedPanelsFromCursor(data);
+
+                Intent intent = new Intent(this, CreationModeActivity.class);
+                intent.putExtra("comic", mComic);
+                intent.putExtra("creation", mCreation);
+                intent.putParcelableArrayListExtra("saved_panels", savedPanels);
+
+                startActivity(intent);
+                break;
+            }
+        }
+    }
+
+    private ArrayList<SavedPanel> getSavedPanelsFromCursor(Cursor data) {
+
+        ArrayList<SavedPanel> savedPanels = new ArrayList<>();
+
+        while (data.moveToNext()) {
+            savedPanels.add(new SavedPanel(
+                    data.getInt(SavedPanelEntry.INDEX_ID),
+                    data.getInt(SavedPanelEntry.INDEX_CREATION_ID),
+                    data.getInt(SavedPanelEntry.INDEX_NUMBER),
+                    data.getInt(SavedPanelEntry.INDEX_PAGE),
+                    data.getFloat(SavedPanelEntry.INDEX_TOP_LEFT_X),
+                    data.getFloat(SavedPanelEntry.INDEX_TOP_LEFT_Y),
+                    data.getFloat(SavedPanelEntry.INDEX_TOP_RIGHT_X),
+                    data.getFloat(SavedPanelEntry.INDEX_TOP_RIGHT_Y),
+                    data.getFloat(SavedPanelEntry.INDEX_BOTTOM_LEFT_X),
+                    data.getFloat(SavedPanelEntry.INDEX_BOTTOM_LEFT_Y),
+                    data.getFloat(SavedPanelEntry.INDEX_BOTTOM_RIGHT_X),
+                    data.getFloat(SavedPanelEntry.INDEX_BOTTOM_RIGHT_Y),
+                    data.getFloat(SavedPanelEntry.INDEX_LEFT_PANE),
+                    data.getFloat(SavedPanelEntry.INDEX_RIGHT_PANE),
+                    data.getFloat(SavedPanelEntry.INDEX_TOP_PANE),
+                    data.getFloat(SavedPanelEntry.INDEX_BOTTOM_PANE),
+                    data.getFloat(SavedPanelEntry.INDEX_SCALE)
+            ));
+        }
+
+        return savedPanels;
+    }
+
+    public void loadSavedPanelsAndStartActivity(Creation creation) {
+        mCreation = creation;
+        getSupportLoaderManager().initLoader(SAVED_PANEL_LOADER, null, ComicDetailsActivity.this);
     }
 
     @Override
@@ -208,7 +269,8 @@ public class ComicDetailsActivity extends FragmentActivity
 
     }
 
-    public static class ComicDetailsAdapter extends
+
+    public class ComicDetailsAdapter extends
             RecyclerView.Adapter<ComicDetailsAdapter.ViewHolder> {
 
         private Cursor mCursor;
@@ -221,15 +283,17 @@ public class ComicDetailsActivity extends FragmentActivity
             mComic = comic;
         }
 
-        public static class ViewHolder extends RecyclerView.ViewHolder {
+        public class ViewHolder extends RecyclerView.ViewHolder {
 
             public final TextView mTextView;
             public final View mPlayIconView;
+            public final View mEditIconView;
 
             public ViewHolder(View view) {
                 super(view);
                 mTextView = (TextView) view.findViewById(R.id.text_view);
                 mPlayIconView = view.findViewById(R.id.play_icon);
+                mEditIconView = view.findViewById(R.id.edit_creation_image_view);
             }
 
             @Override
@@ -261,28 +325,37 @@ public class ComicDetailsActivity extends FragmentActivity
             final Creation creation = new Creation(id, mComic.getId(), title, author, creationDate,
                     lastPanelRead);
 
-            TextView textView = (TextView) holder.mTextView;
+            TextView textView = holder.mTextView;
             textView.setText(title);
 
             holder.mPlayIconView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = createCreationModeActivityIntent(creation);
-                    mContext.startActivity(intent);
+                    //createCreationModeActivityIntent(creation);
+                }
+            });
+
+            holder.mEditIconView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    createCreationModeActivityIntent(creation);
                 }
             });
 
         }
 
-        private Intent createCreationModeActivityIntent(Creation creation) {
+        private void createCreationModeActivityIntent(Creation creation) {
 
             //todo create a callback, pass this creation, loadcursor for saved_panels,
             // put panels in arraylist and pass it to intent
 
-            Intent intent = new Intent(mContext, CreationModeActivity.class);
-            intent.putExtra("creation", creation);
-            intent.putExtra("comic", mComic);
-            return intent;
+
+
+//            Intent intent = new Intent(mContext, CreationModeActivity.class);
+//            intent.putExtra("creation", creation);
+//            intent.putExtra("comic", mComic);
+
+            ComicDetailsActivity.this.loadSavedPanelsAndStartActivity(creation);
         }
 
         @Override

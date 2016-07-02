@@ -64,14 +64,19 @@ public class ComicDbHelper extends SQLiteOpenHelper {
                         SavedPanelEntry.COLUMN_NAME_CREATION_ID + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_NUMBER + INTEGER_TYPE + NOT_NULL_UNIQUE + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_PAGE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_TOP_LEFT + REAL_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_TOP_RIGHT + REAL_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_BOTTOM_LEFT + REAL_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_BOTTOM_RIGHT + REAL_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_LEFT_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_RIGHT_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_TOP_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_TOP_LEFT_X + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_TOP_LEFT_Y + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_TOP_RIGHT_X + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_TOP_RIGHT_Y + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_LEFT_X + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_LEFT_Y + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_RIGHT_X + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_RIGHT_Y + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_LEFT_PANE + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_RIGHT_PANE + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_TOP_PANE + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE + REAL_TYPE + NOT_NULL + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_SCALE + REAL_TYPE + NOT_NULL + COMMA_SEP +
 
                         // Set up foreign key
                         " FOREIGN KEY (" + SavedPanelEntry.COLUMN_NAME_CREATION_ID + ") REFERENCES " +
