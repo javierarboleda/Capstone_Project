@@ -62,7 +62,7 @@ public class ComicDbHelper extends SQLiteOpenHelper {
                 "CREATE TABLE " + SavedPanelEntry.TABLE_NAME + " (" +
                         SavedPanelEntry._ID + INTEGER_TYPE + " PRIMARY KEY AUTOINCREMENT," +
                         SavedPanelEntry.COLUMN_NAME_CREATION_ID + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
-                        SavedPanelEntry.COLUMN_NAME_NUMBER + INTEGER_TYPE + NOT_NULL_UNIQUE + COMMA_SEP +
+                        SavedPanelEntry.COLUMN_NAME_NUMBER + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_PAGE + INTEGER_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_TOP_LEFT_X + REAL_TYPE + NOT_NULL + COMMA_SEP +
                         SavedPanelEntry.COLUMN_NAME_TOP_LEFT_Y + REAL_TYPE + NOT_NULL + COMMA_SEP +

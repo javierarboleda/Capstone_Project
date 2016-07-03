@@ -70,15 +70,15 @@ public class SavedPanel implements Parcelable{
         mScale = in.readFloat();
     }
     
-    public static final Parcelable.Creator<Creation> CREATOR = new Parcelable.Creator<Creation>() {
+    public static final Parcelable.Creator<SavedPanel> CREATOR = new Parcelable.Creator<SavedPanel>() {
         @Override
-        public Creation createFromParcel(Parcel in) {
-            return new Creation(in);
+        public SavedPanel createFromParcel(Parcel in) {
+            return new SavedPanel(in);
         }
 
         @Override
-        public Creation[] newArray(int size) {
-            return new Creation[size];
+        public SavedPanel[] newArray(int size) {
+            return new SavedPanel[size];
         }
     };
     

@@ -10,12 +10,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,22 +29,21 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
-import com.javierarboleda.supercomicreader.app.data.ComicContract;
+import com.javierarboleda.supercomicreader.app.data.CursorWithData;
 import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Creation;
+import com.javierarboleda.supercomicreader.app.model.Mode;
 import com.javierarboleda.supercomicreader.app.model.SavedPanel;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-import static com.javierarboleda.supercomicreader.app.data.ComicContract.*;
 import static com.javierarboleda.supercomicreader.app.data.ComicContract.CreationEntry;
+import static com.javierarboleda.supercomicreader.app.data.ComicContract.SavedPanelEntry;
 
-public class ComicDetailsActivity extends FragmentActivity
+public class ComicDetailsActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private Comic mComic;
-    private Creation mCreation;
     private SubsamplingScaleImageView mBackgroundImageView;
     private static final int CREATION_LOADER = 0;
     private static final int SAVED_PANEL_LOADER = 1;
@@ -51,17 +52,29 @@ public class ComicDetailsActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mComic = getIntent().getParcelableExtra("comic");
+        setContentView(R.layout.activity_comic_details);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        final ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(false);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
+        if (savedInstanceState != null) {
+            mComic = savedInstanceState.getParcelable("comic");
+        } else {
+            mComic = getIntent().getParcelableExtra("comic");
+        }
 
         String coverFilePath = Environment.getExternalStorageDirectory() +
                 mComic.getFile() + mComic.getCover();
 
-        //getLoaderManager().initLoader(0, null, null);
-
-        setContentView(R.layout.activity_comic_details);
-
         TextView titleTextView = (TextView) findViewById(R.id.title_textView);
 
+        assert titleTextView != null;
         titleTextView.setText(mComic.getTitle());
 
         setBackgroundCoverImage(coverFilePath);
@@ -78,9 +91,13 @@ public class ComicDetailsActivity extends FragmentActivity
 
         getSupportLoaderManager().initLoader(CREATION_LOADER, null, ComicDetailsActivity.this);
 
-//
-//        setUpRecyclerView();
+    }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putParcelable("comic", mComic);
     }
 
     private void showDialog() {
@@ -96,11 +113,10 @@ public class ComicDetailsActivity extends FragmentActivity
 
                         Creation creation = insertCreation(input.toString());
 
-                        Intent intent =
-                                new Intent(getApplicationContext(), CreationModeActivity.class);
-                        intent.putExtra("comic", mComic);
-                        intent.putExtra("creation", creation);
-                        startActivity(intent);
+                        ArrayList<SavedPanel> savedPanels = new ArrayList<>();
+
+                        startCreationModeActivity(creation, savedPanels, Mode.CREATE);
+
                 }
             }).show();
     }
@@ -178,7 +194,7 @@ public class ComicDetailsActivity extends FragmentActivity
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
 
         switch (id) {
             case CREATION_LOADER: {
@@ -192,14 +208,20 @@ public class ComicDetailsActivity extends FragmentActivity
                 );
             }
             case SAVED_PANEL_LOADER: {
+                Creation creation = (Creation) args.get("creation");
                 return new CursorLoader(
                         this,
                         SavedPanelEntry.buildSavedPanelDirUri(),
                         null,
                         SavedPanelEntry.COLUMN_NAME_CREATION_ID + " = ?",
-                        new String[]{String.valueOf(mCreation.getId())},
+                        new String[]{String.valueOf(creation.getId())},
                         SavedPanelEntry.COLUMN_NAME_NUMBER + " ASC"
-                );
+                ){
+                    @Override
+                    public Cursor loadInBackground() {
+                        return new CursorWithData<Bundle>(super.loadInBackground(), args);
+                    }
+                };
             }
             default:
                 return null;
@@ -217,22 +239,34 @@ public class ComicDetailsActivity extends FragmentActivity
                 break;
             }
             case SAVED_PANEL_LOADER: {
+                CursorWithData<Bundle> cursorWithData = (CursorWithData<Bundle>) data;
+                Bundle args = cursorWithData.getData();
+                data = cursorWithData.getWrappedCursor();
+                Creation creation = (Creation) args.get("creation");
+                Mode mode = (Mode) args.getSerializable("mode");
                 ArrayList<SavedPanel> savedPanels = getSavedPanelsFromCursor(data);
-
-                Intent intent = new Intent(this, CreationModeActivity.class);
-                intent.putExtra("comic", mComic);
-                intent.putExtra("creation", mCreation);
-                intent.putParcelableArrayListExtra("saved_panels", savedPanels);
-
-                startActivity(intent);
+                startCreationModeActivity(creation, savedPanels, mode);
                 break;
             }
         }
     }
 
+    private void startCreationModeActivity(Creation creation, ArrayList<SavedPanel> savedPanels,
+                                           Mode mode) {
+        Intent intent = new Intent(this, CreationModeActivity.class);
+        intent.putExtra("comic", mComic);
+        intent.putExtra("creation", creation);
+        intent.putExtra("mode", mode);
+        intent.putParcelableArrayListExtra("saved_panels", savedPanels);
+
+        startActivity(intent);
+    }
+
     private ArrayList<SavedPanel> getSavedPanelsFromCursor(Cursor data) {
 
         ArrayList<SavedPanel> savedPanels = new ArrayList<>();
+
+        data.moveToFirst();
 
         while (data.moveToNext()) {
             savedPanels.add(new SavedPanel(
@@ -259,28 +293,23 @@ public class ComicDetailsActivity extends FragmentActivity
         return savedPanels;
     }
 
-    public void loadSavedPanelsAndStartActivity(Creation creation) {
-        mCreation = creation;
-        getSupportLoaderManager().initLoader(SAVED_PANEL_LOADER, null, ComicDetailsActivity.this);
+    public void loadSavedPanelsAndStartActivity(Creation creation, Mode mode) {
+        Bundle args = new Bundle();
+        args.putParcelable("creation", creation);
+        args.putSerializable("mode", mode);
+        getSupportLoaderManager().restartLoader(SAVED_PANEL_LOADER, args, ComicDetailsActivity.this);
+        //getSupportLoaderManager().initLoader(SAVED_PANEL_LOADER, args, ComicDetailsActivity.this);
     }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
-
 
     public class ComicDetailsAdapter extends
             RecyclerView.Adapter<ComicDetailsAdapter.ViewHolder> {
 
         private Cursor mCursor;
         private Context mContext;
-        private Comic mComic;
 
         public ComicDetailsAdapter(Context context, Cursor cursor, Comic comic) {
             mContext = context;
             mCursor = cursor;
-            mComic = comic;
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
@@ -331,31 +360,19 @@ public class ComicDetailsActivity extends FragmentActivity
             holder.mPlayIconView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //createCreationModeActivityIntent(creation);
+                    ComicDetailsActivity.this
+                            .loadSavedPanelsAndStartActivity(creation, Mode.READ);
                 }
             });
 
             holder.mEditIconView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    createCreationModeActivityIntent(creation);
+                    ComicDetailsActivity.this
+                            .loadSavedPanelsAndStartActivity(creation, Mode.CREATE);
                 }
             });
 
-        }
-
-        private void createCreationModeActivityIntent(Creation creation) {
-
-            //todo create a callback, pass this creation, loadcursor for saved_panels,
-            // put panels in arraylist and pass it to intent
-
-
-
-//            Intent intent = new Intent(mContext, CreationModeActivity.class);
-//            intent.putExtra("creation", creation);
-//            intent.putExtra("comic", mComic);
-
-            ComicDetailsActivity.this.loadSavedPanelsAndStartActivity(creation);
         }
 
         @Override
@@ -364,4 +381,8 @@ public class ComicDetailsActivity extends FragmentActivity
         }
     }
 
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("onLoaderReset", "onLoaderReset");
+    }
 }

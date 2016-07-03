@@ -11,4 +11,6 @@
     <dimen name="logo_left">52dp</dimen>
     <dimen name="logo_bottom">12dp</dimen>
 
+    <dimen name="details_banner_image_height">450dp</dimen>
+
 </resources>

@@ -3,10 +3,14 @@ package com.javierarboleda.supercomicreader.app.ui;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Intent;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -14,17 +18,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
+import com.javierarboleda.supercomicreader.app.data.ComicContract;
 import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Creation;
-import com.javierarboleda.supercomicreader.app.model.Panel;
+import com.javierarboleda.supercomicreader.app.model.Mode;
 import com.javierarboleda.supercomicreader.app.model.SavedPanel;
 import com.javierarboleda.supercomicreader.app.util.AnimationUtil;
 
 import java.util.ArrayList;
+
+import static com.javierarboleda.supercomicreader.app.data.ComicContract.*;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -39,6 +47,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private Comic mComic;
     private Creation mCreation;
     private ArrayList<SavedPanel> mSavedPanels;
+    private int mSavedPanelNumber;
     private View mTopPanel;
     private View mBottomPanel;
     private View mLeftPanel;
@@ -46,9 +55,70 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private Menu mMenu;
     private int mUnitSize;
     private String mActivePanels;
-//    private ArrayList<Panel> mSavedPanelsOld;
     private float mOriginalScale;
     private int mPanelPosition;
+    private Mode mMode;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        mComic = getIntent().getParcelableExtra("comic");
+        mCreation = getIntent().getParcelableExtra("creation");
+        mSavedPanels = getIntent().getParcelableArrayListExtra("saved_panels");
+        mMode = (Mode) getIntent().getSerializableExtra("mode");
+
+        mSavedPanelNumber = mSavedPanels.size();
+
+        setContentView(R.layout.activity_creation_mode);
+
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+        mContentView = findViewById(R.id.fullscreen_content);
+        mHiddenImageView = (SubsamplingScaleImageView) findViewById(R.id.comicHiddenImageView);
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+//        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+        init();
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+
+            switch (mMode) {
+                case CREATE:
+                    actionBar.setDisplayShowTitleEnabled(false);
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                    break;
+                case READ:
+                    actionBar.hide();
+                    break;
+            }
+        }
+
+        mViewPager = (ViewPager) findViewById(R.id.viewPager);
+        mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
+        //mViewPager.setPageTransformer(true, new CustomPageTransformer());
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Log.d("ViewPager", "pos=" + position);
+                loadImageViews();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -61,6 +131,12 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
+            case android.R.id.home:
+//                Intent homeIntent = new Intent(this, ComicDetailsActivity.class);
+//                homeIntent.putExtra("comic", mComic);
+//                homeIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                startActivity(homeIntent);
+                break;
             case R.id.top_bottom_side_toggle:
                 toggleActivePanel();
                 break;
@@ -77,20 +153,24 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                 savePanel();
                 break;
             case R.id.play_action_bar_button:
-                if (!mSavedPanels.isEmpty()) {
-                    animateToPanel(mSavedPanels.get(mPanelPosition));
-                    mPanelPosition++;
-                    if (mPanelPosition == mSavedPanels.size()) {
-                        mPanelPosition = 0;
-                    }
-                }
-                else {
-                    //playTestPanels();
-                }
+                playNextPanel();
                 break;
         }
-
+        //return true;
         return super.onOptionsItemSelected(item);
+    }
+
+    private void playNextPanel() {
+        if (!mSavedPanels.isEmpty()) {
+            animateToPanel(mSavedPanels.get(mPanelPosition));
+            mPanelPosition++;
+            if (mPanelPosition == mSavedPanels.size()) {
+                mPanelPosition = 0;
+            }
+        }
+        else {
+            //playTestPanels();
+        }
     }
 
     private void toggleActivePanel() {
@@ -208,10 +288,12 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         bottomPanePointF.y =
                 bottomPanePointF.y / (float) mImageView.getSHeight();
 
+        mSavedPanelNumber++;
+
         SavedPanel savedPanel = new SavedPanel(
                                         0,
                                         mCreation.getId(),
-                                        0,
+                                        mSavedPanelNumber,
                                         mViewPager.getCurrentItem(),
                                         topLeftSourcePointF.x,
                                         topLeftSourcePointF.y,
@@ -229,6 +311,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                                     );
 
         mSavedPanels.add(savedPanel);
+        insertPanelIntoDb(savedPanel);
 
 //        Panel panel = new Panel(topLeftSourcePointF, topRightSourcePointF,
 //                bottomLeftSourcePointF, bottomRightSourcePointF, leftPanePointF, rightPanePointF,
@@ -249,6 +332,35 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 //                        panel.getTopPane().y + " : " +
 //                        panel.getBottomPane().y
 //        );
+    }
+
+    private void insertPanelIntoDb(SavedPanel savedPanel) {
+
+        ContentValues savedPanelValues = new ContentValues();
+
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_CREATION_ID, savedPanel.getCreationId());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_NUMBER, savedPanel.getNumber());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_PAGE, savedPanel.getPage());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_TOP_LEFT_X, savedPanel.getTopLeftX());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_TOP_LEFT_Y, savedPanel.getTopLeftY());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_TOP_RIGHT_X, savedPanel.getTopRightX());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_TOP_RIGHT_Y, savedPanel.getTopRightY());
+        savedPanelValues.put(
+                SavedPanelEntry.COLUMN_NAME_BOTTOM_LEFT_X,savedPanel.getBottomLeftX());
+        savedPanelValues.put(
+                SavedPanelEntry.COLUMN_NAME_BOTTOM_LEFT_Y, savedPanel.getBottomLeftY());
+        savedPanelValues.put(
+                SavedPanelEntry.COLUMN_NAME_BOTTOM_RIGHT_X, savedPanel.getBottomRightX());
+        savedPanelValues.put(
+                SavedPanelEntry.COLUMN_NAME_BOTTOM_RIGHT_Y, savedPanel.getBottomRightY());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_LEFT_PANE, savedPanel.getLeftPane());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_RIGHT_PANE, savedPanel.getRightPane());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_TOP_PANE, savedPanel.getTopPane());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_BOTTOM_PANE, savedPanel.getBottomPane());
+        savedPanelValues.put(SavedPanelEntry.COLUMN_NAME_SCALE, savedPanel.getScale());
+
+        Uri uri = this.getContentResolver().insert(SavedPanelEntry.CONTENT_URI, savedPanelValues);
+
     }
 
     private void animateToPanel(final SavedPanel panel) {
@@ -345,52 +457,6 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         set.start();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mComic = getIntent().getParcelableExtra("comic");
-        mCreation = getIntent().getParcelableExtra("creation");
-        mSavedPanels = getIntent().getParcelableArrayListExtra("saved_panels");
-
-        setContentView(R.layout.activity_creation_mode);
-
-        mVisible = true;
-        mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
-        mHiddenImageView = (SubsamplingScaleImageView) findViewById(R.id.comicHiddenImageView);
-
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
-//        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-
-        init();
-
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-        mViewPager = (ViewPager) findViewById(R.id.viewPager);
-        mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
-        //mViewPager.setPageTransformer(true, new CustomPageTransformer());
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                Log.d("ViewPager", "pos=" + position);
-                loadImageViews();
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-    }
-
     private void init() {
 
         mTopPanel = findViewById(R.id.topPanel);
@@ -399,8 +465,22 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         mRightPanel = findViewById(R.id.rightPanel);
         mUnitSize = 50;
         mActivePanels = "B/T";
-        mSavedPanels = new ArrayList<>();
         mPanelPosition = 0;
+    }
+
+    private void resetEditControlsAndPanels() {
+        mTopPanel.getLayoutParams().height = 0;
+        mBottomPanel.getLayoutParams().height = 0;
+        mLeftPanel.getLayoutParams().width = 0;
+        mRightPanel.getLayoutParams().width = 0;
+        mTopPanel.requestLayout();
+        mBottomPanel.requestLayout();
+        mLeftPanel.requestLayout();
+        mRightPanel.requestLayout();
+        mUnitSize = 50;
+        mMenu.findItem(R.id.unitaction_bar_button).setTitle(String.valueOf(mUnitSize));
+        View view = findViewById(R.id.main_layout);
+        view.invalidate();
     }
 
     @Override
@@ -462,24 +542,37 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
                     @Override
                     public boolean onSingleTapConfirmed(MotionEvent e) {
-
-
+                        switch (mMode) {
+                            case CREATE:
+                                resetEditControlsAndPanels();
+                                break;
+                            case READ:
+                                break;
+                        }
                         return true;
                     }
 
                     @Override
                     public void onLongPress(MotionEvent e) {
-
-                        mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1, true);
-
+                        switch (mMode) {
+                            case CREATE:
+                                resetEditControlsAndPanels();
+                                break;
+                            case READ:
+                                break;
+                        }
                     }
 
                     @Override
                     public boolean onDoubleTap(MotionEvent e) {
-                        PointF sCoord = mImageView.viewToSourceCoord(e.getX(), e.getY());
-
-                        init();
-
+                        switch (mMode) {
+                            case CREATE:
+                                resetEditControlsAndPanels();
+                                break;
+                            case READ:
+                                playNextPanel();
+                                break;
+                        }
                         return true;
                     }
                 });
