@@ -100,7 +100,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
 
         mViewPager = (ViewPager) findViewById(R.id.viewPager);
         mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
-        //mViewPager.setPageTransformer(true, new CustomPageTransformer());
+        mViewPager.setPageTransformer(true, new CustomPageTransformer());
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -111,6 +111,9 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
             public void onPageSelected(int position) {
                 Log.d("ViewPager", "pos=" + position);
                 loadImageViews();
+
+
+
             }
 
             @Override
@@ -366,7 +369,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private void animateToPanel(final SavedPanel panel) {
 
         if (panel.getPage() != mViewPager.getCurrentItem()) {
-            mViewPager.setCurrentItem(panel.getPage(), true);
+            mViewPager.setCurrentItem(panel.getPage(), false);
         }
 
         final PointF midPointPercentage = panel.getMidpoint();

@@ -25,6 +25,8 @@ public class ComicPagerAdapter extends PagerAdapter {
         mComic = comic;
     }
 
+
+
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
 

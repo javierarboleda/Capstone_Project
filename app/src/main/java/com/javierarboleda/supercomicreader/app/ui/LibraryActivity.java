@@ -3,6 +3,7 @@ package com.javierarboleda.supercomicreader.app.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -20,18 +21,19 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.util.ComicUtil;
 import com.javierarboleda.supercomicreader.app.util.FileUtil;
 
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LibraryActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
+    private MaterialDialog mProgressBar;
 
     private static final int READ_REQUEST_CODE = 42;
 
@@ -63,7 +65,6 @@ public class LibraryActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-
     }
 
     @Override
@@ -135,7 +136,16 @@ public class LibraryActivity extends AppCompatActivity {
 
             if (FileUtil.hasCbrExtension(path)) {
                 // todo: this needs to be called from async task, ALSO add progress spinner
-                ComicUtil.archiveHelper(file, this);
+
+                new ExtractAsyncTask().execute(file);
+                mProgressBar =
+                        new MaterialDialog.Builder(this)
+                                .title("Extracting Comic Imagaes")
+                                .content("Please wait...")
+                                .progress(true,0)
+                                .autoDismiss(false)
+                                .cancelable(false)
+                                .show();
             }
 
 
@@ -206,5 +216,20 @@ public class LibraryActivity extends AppCompatActivity {
             return mFragmentTitles.get(position);
         }
     }
+
+    public class ExtractAsyncTask extends AsyncTask<File, Void, Void> {
+        @Override
+        protected Void doInBackground(File... params) {
+            ComicUtil.archiveHelper(params[0], getApplicationContext());
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            mProgressBar.dismiss();
+        }
+    }
+
 
 }
