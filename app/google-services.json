@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "956972934319",
+    "project_id": "test-scr"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:956972934319:android:95b882192b1eb799",
+        "android_client_info": {
+          "package_name": "com.javierarboleda.supercomicreader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNDilP7w0pvQyKOzV-5Qlj9a9vUfBfebQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-80318557-3"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

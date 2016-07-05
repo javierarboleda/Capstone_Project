@@ -22,19 +22,13 @@ import java.io.IOException;
  */
 public class ComicUtil {
 
-    public static void archiveHelper(File file, Context context) {
+    public static void archiveHelper(File file, Context context) throws RarException, IOException {
 
 //        File file = new File(filePath);
 
         Archive archive = null;
 
-        try {
-            archive = new Archive(file);
-        } catch (RarException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        archive = new Archive(file);
 
         if (archive != null) {
             int numOfPages = 0;
@@ -76,22 +70,10 @@ public class ComicUtil {
                     coverImageName = FileUtil.getLastPathComponent(fileName, true);
                 }
 
-                try {
-                    os = new FileOutputStream(outFile);
-                    archive.extractFile(fh, os);
-                    os.close();
-                    numOfPages++;
-
-                } catch (FileNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (RarException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                os = new FileOutputStream(outFile);
+                archive.extractFile(fh, os);
+                os.close();
+                numOfPages++;
 
                 Log.d("ComicUtil", outFile.getPath());
 

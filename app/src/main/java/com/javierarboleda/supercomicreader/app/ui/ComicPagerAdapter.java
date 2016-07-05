@@ -3,6 +3,7 @@ package com.javierarboleda.supercomicreader.app.ui;
 import android.content.Context;
 import android.os.Environment;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,25 +18,31 @@ import com.javierarboleda.supercomicreader.app.model.Comic;
  */
 public class ComicPagerAdapter extends PagerAdapter {
 
+    private final String TAG = ComicPagerAdapter.class.getName();
     private Context mContext;
     private Comic mComic;
 
     public ComicPagerAdapter(Context context, Comic comic) {
         mContext = context;
         mComic = comic;
-    }
 
+        Log.d(TAG, "ComicPagerAdapter: comic = " + comic.getTitle());
+    }
 
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
+
+        Log.d(TAG, "instantiateItem: Entered"
+                + "\nposition=" + position
+        );
 
         LayoutInflater inflater = LayoutInflater.from(mContext);
         ViewGroup layout =
                 (ViewGroup) inflater.inflate(R.layout.pager_item_comic, container, false);
         container.addView(layout);
 
-        String coverFilePath = Environment.getExternalStorageDirectory() +
+        String imageFilePath = Environment.getExternalStorageDirectory() +
                 mComic.getFile() + mComic.getmImagePaths().get(position);
 
         SubsamplingScaleImageView mComicImageView =
@@ -44,23 +51,16 @@ public class ComicPagerAdapter extends PagerAdapter {
         SubsamplingScaleImageView mHiddenComicImageView =
                 (SubsamplingScaleImageView) layout.findViewById(R.id.comicHiddenImageView);
 
-        mHiddenComicImageView.setImage(ImageSource.uri(coverFilePath));
+        Log.d(TAG, "instantiateItem: Setting image source and params. Set tag 'h' & 'v'");
+        mHiddenComicImageView.setImage(ImageSource.uri(imageFilePath));
         mHiddenComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
         mHiddenComicImageView.setTag("h" + position);
 
-        // Set up the user interaction to manually show or hide the system UI.
-        assert mComicImageView != null;
-        mComicImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //mContext.toggle();
-            }
-        });
-
         mComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
-        mComicImageView.setImage(ImageSource.uri(coverFilePath));
+        mComicImageView.setImage(ImageSource.uri(imageFilePath));
         mComicImageView.setTag("v" + position);
 
+        Log.d(TAG, "instantiateItem: calling onViewLoaded callback");
         ((Callback) mContext).onViewLoaded();
 
         return layout;
@@ -68,6 +68,7 @@ public class ComicPagerAdapter extends PagerAdapter {
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
+        Log.d(TAG, "destroyItem: position=" + position);
         container.removeView((View) object);
     }
 

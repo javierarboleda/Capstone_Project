@@ -43,6 +43,7 @@ import static com.javierarboleda.supercomicreader.app.data.ComicContract.SavedPa
 public class ComicDetailsActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    private final String TAG = ComicDetailsActivity.class.getName();
     private Comic mComic;
     private SubsamplingScaleImageView mBackgroundImageView;
     private static final int CREATION_LOADER = 0;
@@ -245,6 +246,18 @@ public class ComicDetailsActivity extends AppCompatActivity
                 Creation creation = (Creation) args.get("creation");
                 Mode mode = (Mode) args.getSerializable("mode");
                 ArrayList<SavedPanel> savedPanels = getSavedPanelsFromCursor(data);
+
+                Log.d(TAG, "onLoadFinished: passing saved panels:");
+                for (SavedPanel s : savedPanels) {
+                    Log.d(TAG,""
+                            + "\n" + "id=" + s.getId()
+                            + "\n" + "creationId=" + s.getCreationId()
+                            + "\n" + "panelNumber=" + s.getNumber()
+                            + "\n" + "page=" + s.getPage()
+                            + "\n" + "scale=" + s.getScale()
+                    );
+                }
+
                 startCreationModeActivity(creation, savedPanels, mode);
                 break;
             }
@@ -268,7 +281,7 @@ public class ComicDetailsActivity extends AppCompatActivity
 
         data.moveToFirst();
 
-        while (data.moveToNext()) {
+         do {
             savedPanels.add(new SavedPanel(
                     data.getInt(SavedPanelEntry.INDEX_ID),
                     data.getInt(SavedPanelEntry.INDEX_CREATION_ID),
@@ -288,7 +301,7 @@ public class ComicDetailsActivity extends AppCompatActivity
                     data.getFloat(SavedPanelEntry.INDEX_BOTTOM_PANE),
                     data.getFloat(SavedPanelEntry.INDEX_SCALE)
             ));
-        }
+        } while (data.moveToNext());
 
         return savedPanels;
     }

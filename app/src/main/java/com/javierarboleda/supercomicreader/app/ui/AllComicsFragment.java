@@ -3,13 +3,16 @@ package com.javierarboleda.supercomicreader.app.ui;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.RecyclerView;
@@ -36,14 +39,25 @@ import java.util.Random;
 public class AllComicsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final int URL_LOADER = 0;
+    private static final int REQUEST_FILE_ACCESS = 200;
     private SimpleStringRecyclerViewAdapter mAdapter;
     private RecyclerView mRecyclerView;
+    final String[] PERMS = {"android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE"};
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        getLoaderManager().initLoader(URL_LOADER, null, this);
+        if (hasFileAccessPermissions()) {
+            getLoaderManager().initLoader(URL_LOADER, null, this);
+        } else {
+            if (isMPlus()) {
+                requestReadExternalStoragePermission();
+            }
+        }
+
+
 
         mRecyclerView = (RecyclerView) inflater.inflate(
                 R.layout.fragment_all_comics, container, false);
@@ -53,8 +67,6 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
     }
 
     private void setupRecyclerView(RecyclerView recyclerView, Cursor cursor) {
-
-        requestReadExternalStoragePermission();
 
         File files =
                 new File(Environment.getExternalStorageDirectory().getPath() + "/comics/covers");
@@ -73,10 +85,6 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
         recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(mAdapter);
-
-
-
-
     }
 
     @Override
@@ -109,18 +117,46 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
     }
 
+    private boolean hasFileAccessPermissions() {
+
+        int readExternalStorage = ContextCompat.checkSelfPermission(getContext(),
+                PERMS[0]);
+        int writeExternalStorage = ContextCompat.checkSelfPermission(getContext(),
+                PERMS[1]);
+
+        if (readExternalStorage == PackageManager.PERMISSION_GRANTED
+                && writeExternalStorage == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isMPlus() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
     private void requestReadExternalStoragePermission() {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE",
-                    "android.permission.WRITE_EXTERNAL_STORAGE"};
+        requestPermissions(PERMS, REQUEST_FILE_ACCESS);
+    }
 
-            int permsRequestCode = 200;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_FILE_ACCESS:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-            requestPermissions(perms, permsRequestCode);
+                    getLoaderManager().initLoader(URL_LOADER, null, this);
+
+                    mRecyclerView.invalidate();
+                }
         }
 
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private List<String> getRandomSublist(ArrayList<String> array, int amount) {

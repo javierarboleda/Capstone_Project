@@ -1,11 +1,14 @@
 package com.javierarboleda.supercomicreader.app.ui;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -22,18 +25,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.github.junrar.exception.RarException;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.javierarboleda.supercomicreader.R;
+import com.javierarboleda.supercomicreader.app.services.AnalyticsApplication;
 import com.javierarboleda.supercomicreader.app.util.ComicUtil;
 import com.javierarboleda.supercomicreader.app.util.FileUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LibraryActivity extends AppCompatActivity {
 
+    private static final int REQUEST_FILE_ACCESS = 200;
     private DrawerLayout mDrawerLayout;
     private MaterialDialog mProgressBar;
+    private Tracker mTracker;
 
     private static final int READ_REQUEST_CODE = 42;
 
@@ -42,21 +52,26 @@ public class LibraryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
 
+        AnalyticsApplication application = ((AnalyticsApplication) LibraryActivity.this.getApplication());
+        mTracker = application.getDefaultTracker();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        final ActionBar ab = getSupportActionBar();
-        if (ab != null) {
-            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-            ab.setDisplayHomeAsUpEnabled(true);
-        }
+//        final ActionBar ab = getSupportActionBar();
+//        if (ab != null) {
+//            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+//            ab.setDisplayHomeAsUpEnabled(true);
+//        }
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        if (navigationView != null) {
-            setupDrawerContent(navigationView);
-        }
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+//        if (navigationView != null) {
+//            setupDrawerContent(navigationView);
+//        }
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         if (viewPager != null) {
@@ -65,6 +80,10 @@ public class LibraryActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+    }
+
+    public void init() {
+
     }
 
     @Override
@@ -76,23 +95,24 @@ public class LibraryActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case android.R.id.home:
-                mDrawerLayout.openDrawer(GravityCompat.START);
+            case android.R.id.home: {
+//                mDrawerLayout.openDrawer(GravityCompat.START);
+//
+//                if (isMPlus()) {
+//                    requestReadExternalStoragePermission();
+//                }
+//
+//                return true;
+            }
+            case R.id.action_add_comic: {
+                if (isMPlus()) {
+                    requestReadExternalStoragePermission();
+                }
 
-                requestReadExternalStoragePermission();
-                
-//                ComicUtil.archiveHelper(
-//                    "/storage/emulated/0/comics/" +
-//                    "Batman Cacophony 01 (of 03) (2009) (3 covers) (digital) (Minutemen-PhD).cbr",
-//                        this
-//                );
-                
-                return true;
-
-            case R.id.action_add_comic:
                 performFileSearch();
-                return true;
 
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -154,24 +174,36 @@ public class LibraryActivity extends AppCompatActivity {
 
     }
 
+    private boolean isMPlus() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
     private void requestReadExternalStoragePermission() {
+        String[] perms = {"android.permission.READ_EXTERNAL_STORAGE",
+                          "android.permission.WRITE_EXTERNAL_STORAGE"};
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        requestPermissions(perms, READ_REQUEST_CODE);
+    }
 
-            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE",
-                              "android.permission.WRITE_EXTERNAL_STORAGE"};
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_FILE_ACCESS:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-            int permsRequestCode = 200;
-
-            requestPermissions(perms, permsRequestCode);
+                }
         }
 
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());
+//        adapter.addFragment(new AllComicsFragment(), "all comics");
         adapter.addFragment(new AllComicsFragment(), "all comics");
-        adapter.addFragment(new AllComicsFragment(), "my creations");
         viewPager.setAdapter(adapter);
     }
 
@@ -220,7 +252,23 @@ public class LibraryActivity extends AppCompatActivity {
     public class ExtractAsyncTask extends AsyncTask<File, Void, Void> {
         @Override
         protected Void doInBackground(File... params) {
-            ComicUtil.archiveHelper(params[0], getApplicationContext());
+
+            try {
+                ComicUtil.archiveHelper(params[0], getApplicationContext());
+            } catch (RarException e) {
+
+                mTracker.send(new HitBuilders.ExceptionBuilder()
+                        .setDescription("RarException in ExtractAsyncTask")
+                        .build()
+                );
+
+            } catch (IOException e) {
+
+                mTracker.send(new HitBuilders.ExceptionBuilder()
+                        .setDescription("IOException in ExtractAsyncTask")
+                        .build()
+                );
+            }
 
             return null;
         }
