@@ -10,4 +10,6 @@
     <string name="input_hint"></string>
     <string name="input_prefill"></string>
     <string name="input_content"></string>
+    <string name="widget_title">SuperComicReader!</string>
+    <string name="empty_widget_list">No creations available</string>
 </resources>

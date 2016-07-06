@@ -29,7 +29,8 @@
             android:name=".app.data.ComicProvider"
             android:authorities="com.javierarboleda.supercomicreader" />
 
-        <activity android:name=".app.ui.ComicDetailsActivity"
+        <activity
+            android:name=".app.ui.ComicDetailsActivity"
             android:screenOrientation="portrait"
             android:launchMode="singleTop"
             android:parentActivityName=".app.ui.LibraryActivity"/>
@@ -40,6 +41,30 @@
             android:label="@string/title_activity_creation_mode"
             android:theme="@style/FullscreenTheme"
             android:parentActivityName=".app.ui.ComicDetailsActivity"  />
+
+        <!-- Widget -->
+        <receiver
+            android:name=".app.widget.WidgetProvider"
+            android:label="@string/widget_title"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action
+                    android:name="com.javierarboleda.supercomicreader.app.ACTION_DATA_UPDATED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_provider_info" />
+
+        </receiver>
+
+        <service android:name=".app.widget.MyWidgetService"
+                 android:enabled="true"
+                 android:exported="false"
+                 android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+
     </application>
 
 </manifest>
