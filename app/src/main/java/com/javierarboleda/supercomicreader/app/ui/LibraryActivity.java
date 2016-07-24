@@ -14,10 +14,8 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -25,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.folderselector.FileChooserDialog;
 import com.github.junrar.exception.RarException;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -33,12 +32,14 @@ import com.javierarboleda.supercomicreader.app.services.AnalyticsApplication;
 import com.javierarboleda.supercomicreader.app.util.ComicUtil;
 import com.javierarboleda.supercomicreader.app.util.FileUtil;
 
+import net.lingala.zip4j.exception.ZipException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LibraryActivity extends AppCompatActivity {
+public class LibraryActivity extends AppCompatActivity implements FileChooserDialog.FileCallback {
 
     private static final int REQUEST_FILE_ACCESS = 200;
     private DrawerLayout mDrawerLayout;
@@ -52,7 +53,8 @@ public class LibraryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
 
-        AnalyticsApplication application = ((AnalyticsApplication) LibraryActivity.this.getApplication());
+        AnalyticsApplication application =
+                ((AnalyticsApplication) LibraryActivity.this.getApplication());
         mTracker = application.getDefaultTracker();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -121,56 +123,31 @@ public class LibraryActivity extends AppCompatActivity {
 
     private void performFileSearch() {
 
-        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-        // browser.
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        new FileChooserDialog.Builder(this)
+                .chooseButton(R.string.choose_dialog_label)
+                .show();
+    }
 
-        // Filter to only show results that can be "opened", such as a
-        // file (as opposed to a list of contacts or timezones)
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
+    @Override
+    public void onFileSelection(@NonNull FileChooserDialog dialog, @NonNull File file) {
 
-        // Filter to show only images, using the image MIME data type.
-        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-        // To search for all documents available via installed storage providers,
-        // it would be "*/*".
-        intent.setType("application/*");
+        if (FileUtil.hasCbrExtension(file.getPath()) || FileUtil.hasCbzExtension(file.getPath())) {
 
-        startActivityForResult(intent, READ_REQUEST_CODE);
+            new ExtractAsyncTask().execute(file);
+            mProgressBar =
+                    new MaterialDialog.Builder(this)
+                            .title("Extracting Comic Imagaes")
+                            .content("Please wait...")
+                            .progress(true,0)
+                            .autoDismiss(false)
+                            .cancelable(false)
+                            .show();
+        }
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // todo check if rar file and extract images
-
-            Uri uri = null;
-            if (data != null) {
-                uri = data.getData();
-                Log.d("LibraryActivity", "OnActivityResult URI=" + uri.getPath());
-            }
-
-            String path = uri.getPath();
-
-            File file = FileUtil.convertDocumentUriPathToFile(path);
-
-            if (FileUtil.hasCbrExtension(path)) {
-                // todo: this needs to be called from async task, ALSO add progress spinner
-
-                new ExtractAsyncTask().execute(file);
-                mProgressBar =
-                        new MaterialDialog.Builder(this)
-                                .title("Extracting Comic Imagaes")
-                                .content("Please wait...")
-                                .progress(true,0)
-                                .autoDismiss(false)
-                                .cancelable(false)
-                                .show();
-            }
-
-
-
-        }
 
     }
 
@@ -253,21 +230,38 @@ public class LibraryActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(File... params) {
 
-            try {
-                ComicUtil.archiveHelper(params[0], getApplicationContext());
-            } catch (RarException e) {
+            File file = params[0];
 
-                mTracker.send(new HitBuilders.ExceptionBuilder()
-                        .setDescription("RarException in ExtractAsyncTask")
-                        .build()
-                );
+            if (FileUtil.hasCbrExtension(file.getPath())) {
 
-            } catch (IOException e) {
+                try {
+                    ComicUtil.archiveHelper(file, getApplicationContext());
+                } catch (RarException e) {
 
-                mTracker.send(new HitBuilders.ExceptionBuilder()
-                        .setDescription("IOException in ExtractAsyncTask")
-                        .build()
-                );
+                    mTracker.send(new HitBuilders.ExceptionBuilder()
+                            .setDescription("RarException in ExtractAsyncTask")
+                            .build()
+                    );
+
+                } catch (IOException e) {
+
+                    mTracker.send(new HitBuilders.ExceptionBuilder()
+                            .setDescription("IOException in ExtractAsyncTask")
+                            .build()
+                    );
+                }
+
+            } else if (FileUtil.hasCbzExtension(file.getPath())) {
+
+                try {
+                    ComicUtil.unzipHelper(file, getApplicationContext());
+                } catch (ZipException e) {
+                    mTracker.send(new HitBuilders.ExceptionBuilder()
+                            .setDescription("ZipException in ExtractAsyncTask")
+                            .build()
+                    );
+                }
+
             }
 
             return null;

@@ -13,9 +13,14 @@ import java.util.List;
 public class FileUtil {
 
     public static String CBR_EXTENSION = "cbr";
+    public static String CBZ_EXTENSION = "cbz";
 
     public static boolean hasCbrExtension(String path) {
         return getExtension(path).equalsIgnoreCase(CBR_EXTENSION);
+    }
+
+    public static boolean hasCbzExtension(String path) {
+        return getExtension(path).equalsIgnoreCase(CBZ_EXTENSION);
     }
 
     public static String getExtension(String fileName) {

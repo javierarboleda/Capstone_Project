@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/SuperComicReader.iml" filepath="$PROJECT_DIR$/SuperComicReader.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/junrar-0.7/junrar-0.7.iml" filepath="$PROJECT_DIR$/junrar-0.7/junrar-0.7.iml" />
+      <module fileurl="file://$PROJECT_DIR$/zip4j_1.3.2/zip4j_1.3.2.iml" filepath="$PROJECT_DIR$/zip4j_1.3.2/zip4j_1.3.2.iml" />
     </modules>
   </component>
 </project>

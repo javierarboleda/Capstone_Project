@@ -1,1 +1,1 @@
-include ':app', ':junrar-0.7'
+include ':app', ':junrar-0.7', ':zip4j_1.3.2'
