@@ -2,6 +2,9 @@ package com.javierarboleda.supercomicreader.app.util;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
@@ -84,14 +87,7 @@ public class ComicUtil {
             }
 
             // write comic to database
-            // todo place in method
-            ContentValues comicValues = new ContentValues();
-            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_TITLE, folderName);
-            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_FILE, path);
-            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_COVER, coverImageName);
-            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_PAGES, numOfPages);
-
-            context.getContentResolver().insert(ComicContract.ComicEntry.CONTENT_URI, comicValues);
+            addComicToDb(context, folderName, path, coverImageName, numOfPages);
 
         }
     }
@@ -144,16 +140,46 @@ public class ComicUtil {
         // if coverImageName == null, then there were no images in the zip file... DANGER!
         if (coverImageName != null) {
             // write comic to database
-            // todo place in method
+            addComicToDb(context, folderName, path, coverImageName, numOfPages);
+        }
+
+    }
+
+    private static void addComicToDb(Context context, String title, String path,
+                                     String coverImageName, int numOfPages) {
+
+        if (!isExistingComic(title, context)) {
+
             ContentValues comicValues = new ContentValues();
-            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_TITLE, folderName);
+            comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_TITLE, title);
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_FILE, path);
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_COVER, coverImageName);
             comicValues.put(ComicContract.ComicEntry.COLUMN_NAME_PAGES, numOfPages);
 
             context.getContentResolver().insert(ComicContract.ComicEntry.CONTENT_URI, comicValues);
         }
+    }
 
+    private static boolean isExistingComic(String folderName, Context context) {
+
+        Uri creationDirUri = ComicContract.ComicEntry.buildComicDirUri();
+
+        String selectionClause = ComicContract.ComicEntry.COLUMN_NAME_TITLE + " = " +
+                DatabaseUtils.sqlEscapeString(folderName);
+
+        Cursor cursor = context.getContentResolver().query(
+                    creationDirUri,
+                    null,
+                    selectionClause,
+                    null,
+                    null
+            );
+
+        if (cursor.getCount() == 1) {
+            return true;
+        }
+
+        return false;
     }
 
 }
