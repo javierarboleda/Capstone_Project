@@ -22,7 +22,7 @@ Super Comic Reader allows users to read their favorite comic books as well as cr
 
 ![screenshot](https://raw.githubusercontent.com/javierarboleda/Capstone_Project/master/scr_edit_02.gif)
 
-### _Panel-to-panel playback in immersive mode_
+### _Panel-to-panel playback in immersive mode:_
 
 ![screenshot](https://raw.githubusercontent.com/javierarboleda/Capstone_Project/master/scr_edit_03.gif)
 
