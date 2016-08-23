@@ -133,7 +133,7 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
             new ExtractAsyncTask().execute(file);
             mProgressBar =
                     new MaterialDialog.Builder(this)
-                            .title("Extracting Comic Imagaes")
+                            .title("Extracting Comic Images")
                             .content("Please wait...")
                             .progress(true,0)
                             .autoDismiss(false)

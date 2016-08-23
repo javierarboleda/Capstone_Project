@@ -12,6 +12,7 @@ import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
 import com.javierarboleda.supercomicreader.app.model.Comic;
+import com.javierarboleda.supercomicreader.app.model.Mode;
 
 /**
  * Created by javierarboleda on 6/19/16.
@@ -21,10 +22,12 @@ public class ComicPagerAdapter extends PagerAdapter {
     private final String TAG = ComicPagerAdapter.class.getName();
     private Context mContext;
     private Comic mComic;
+    private Mode mMode;
 
-    public ComicPagerAdapter(Context context, Comic comic) {
+    public ComicPagerAdapter(Context context, Comic comic, Mode mode) {
         mContext = context;
         mComic = comic;
+        mMode = mode;
 
         Log.d(TAG, "ComicPagerAdapter: comic = " + comic.getTitle());
     }
@@ -48,17 +51,21 @@ public class ComicPagerAdapter extends PagerAdapter {
         SubsamplingScaleImageView mComicImageView =
                 (SubsamplingScaleImageView) layout.findViewById(R.id.comic_image_view);
 
-        SubsamplingScaleImageView mHiddenComicImageView =
-                (SubsamplingScaleImageView) layout.findViewById(R.id.comicHiddenImageView);
+        SubsamplingScaleImageView mHiddenComicImageView;
 
         Log.d(TAG, "instantiateItem: Setting image source and params. Set tag 'h' & 'v'");
-        mHiddenComicImageView.setImage(ImageSource.uri(imageFilePath));
-        mHiddenComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
-        mHiddenComicImageView.setTag("h" + position);
 
-        mComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
         mComicImageView.setImage(ImageSource.uri(imageFilePath));
         mComicImageView.setTag("v" + position);
+
+        if (mMode != Mode.FREE_READ) {
+            mHiddenComicImageView =
+                (SubsamplingScaleImageView) layout.findViewById(R.id.comicHiddenImageView);
+            mHiddenComicImageView.setImage(ImageSource.uri(imageFilePath));
+            mHiddenComicImageView.setTag("h" + position);
+            mHiddenComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
+            mComicImageView.setPanLimit(SubsamplingScaleImageView.PAN_LIMIT_OUTSIDE);
+        }
 
         Log.d(TAG, "instantiateItem: calling onViewLoaded callback");
         ((Callback) mContext).onViewLoaded();

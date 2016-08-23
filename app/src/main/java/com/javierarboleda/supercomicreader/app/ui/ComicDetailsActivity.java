@@ -92,6 +92,13 @@ public class ComicDetailsActivity extends AppCompatActivity
 
         getSupportLoaderManager().initLoader(CREATION_LOADER, null, ComicDetailsActivity.this);
 
+        findViewById(R.id.read_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startCreationModeActivity(null, null, Mode.FREE_READ);
+            }
+        });
+
     }
 
     @Override
@@ -266,7 +273,7 @@ public class ComicDetailsActivity extends AppCompatActivity
 
     private void startCreationModeActivity(Creation creation, ArrayList<SavedPanel> savedPanels,
                                            Mode mode) {
-        Intent intent = new Intent(this, CreationModeActivity.class);
+        Intent intent = new Intent(this, NavigateComicActivity.class);
         intent.putExtra("comic", mComic);
         intent.putExtra("creation", creation);
         intent.putExtra("mode", mode);
@@ -280,6 +287,10 @@ public class ComicDetailsActivity extends AppCompatActivity
         ArrayList<SavedPanel> savedPanels = new ArrayList<>();
 
         data.moveToFirst();
+
+        if (data.isAfterLast()) {
+            return savedPanels;
+        }
 
          do {
             savedPanels.add(new SavedPanel(
@@ -310,7 +321,8 @@ public class ComicDetailsActivity extends AppCompatActivity
         Bundle args = new Bundle();
         args.putParcelable("creation", creation);
         args.putSerializable("mode", mode);
-        getSupportLoaderManager().restartLoader(SAVED_PANEL_LOADER, args, ComicDetailsActivity.this);
+        getSupportLoaderManager()
+                .restartLoader(SAVED_PANEL_LOADER, args, ComicDetailsActivity.this);
         //getSupportLoaderManager().initLoader(SAVED_PANEL_LOADER, args, ComicDetailsActivity.this);
     }
 

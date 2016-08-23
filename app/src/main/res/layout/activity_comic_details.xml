@@ -73,15 +73,17 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Resume"
-                    android:theme="@style/ComicDetailsFlatButton"
-                    style="@style/Widget.AppCompat.Button.Borderless"/>
+                <!--<Button-->
+                    <!--android:id="@+id/resume_button"-->
+                    <!--android:layout_width="0dp"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Resume"-->
+                    <!--android:theme="@style/ComicDetailsFlatButton"-->
+                    <!--style="@style/Widget.AppCompat.Button.Borderless"/>-->
 
                 <Button
+                    android:id="@+id/read_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -89,13 +91,14 @@
                     android:theme="@style/ComicDetailsFlatButton"
                     style="@style/Widget.AppCompat.Button.Borderless"/>
 
-                <Button
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Scan"
-                    android:theme="@style/ComicDetailsFlatButton"
-                    style="@style/Widget.AppCompat.Button.Borderless"/>
+                <!--<Button-->
+                    <!--android:id="@+id/scan_button"-->
+                    <!--android:layout_width="0dp"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:layout_weight="1"-->
+                    <!--android:text="Scan"-->
+                    <!--android:theme="@style/ComicDetailsFlatButton"-->
+                    <!--style="@style/Widget.AppCompat.Button.Borderless"/>-->
 
             </LinearLayout>
 

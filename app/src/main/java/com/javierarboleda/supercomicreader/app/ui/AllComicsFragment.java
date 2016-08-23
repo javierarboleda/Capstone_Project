@@ -79,8 +79,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             }
         }
 
-        mAdapter = new SimpleStringRecyclerViewAdapter(getActivity(),
-                getRandomSublist(comicCovers, cursor.getCount()), cursor);
+        mAdapter = new SimpleStringRecyclerViewAdapter(getActivity(), cursor);
 
         recyclerView.addItemDecoration(new MarginDecoration(recyclerView.getContext()));
         recyclerView.setHasFixedSize(true);
@@ -174,7 +173,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
         private Context mContext;
         private final TypedValue mTypedValue = new TypedValue();
         private int mBackground;
-        private List<String> mValues;
+        //private List<String> mValues;
         private Cursor mCursor;
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -195,14 +194,14 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
             }
         }
 
-        public String getValueAt(int position) {
-            return mValues.get(position);
-        }
+//        public String getValueAt(int position) {
+//            return mValues.get(position);
+//        }
 
-        public SimpleStringRecyclerViewAdapter(Context context, List<String> items, Cursor cursor) {
+        public SimpleStringRecyclerViewAdapter(Context context, Cursor cursor) {
             context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
             mBackground = mTypedValue.resourceId;
-            mValues = items;
+            //mValues = items;
             mCursor = cursor;
             mContext = context;
         }
@@ -217,7 +216,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
         @Override
         public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mBoundString = mValues.get(position);
+            //holder.mBoundString = mValues.get(position);
 //            holder.mTextView.setText(mValues.get(position));
 
             mCursor.moveToPosition(position);
@@ -263,7 +262,7 @@ public class AllComicsFragment extends Fragment implements LoaderManager.LoaderC
 
         @Override
         public int getItemCount() {
-            return mValues.size();
+            return mCursor.getCount();
         }
 
 

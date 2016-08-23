@@ -35,7 +35,7 @@
             android:launchMode="singleTop"
             android:parentActivityName=".app.ui.LibraryActivity"/>
         <activity
-            android:name=".app.ui.CreationModeActivity"
+            android:name=".app.ui.NavigateComicActivity"
             android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_creation_mode"

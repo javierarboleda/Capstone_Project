@@ -5,7 +5,6 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,12 +18,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.javierarboleda.supercomicreader.R;
-import com.javierarboleda.supercomicreader.app.data.ComicContract;
 import com.javierarboleda.supercomicreader.app.model.Comic;
 import com.javierarboleda.supercomicreader.app.model.Creation;
 import com.javierarboleda.supercomicreader.app.model.Mode;
@@ -39,10 +36,10 @@ import static com.javierarboleda.supercomicreader.app.data.ComicContract.*;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class CreationModeActivity extends AppCompatActivity implements ComicPagerAdapter.Callback
+public class NavigateComicActivity extends AppCompatActivity implements ComicPagerAdapter.Callback
 {
 
-    final String TAG = CreationModeActivity.class.getName();
+    final String TAG = NavigateComicActivity.class.getName();
     ViewPager mViewPager;
     private SubsamplingScaleImageView mImageView;
     private SubsamplingScaleImageView mHiddenImageView;
@@ -60,6 +57,7 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
     private float mOriginalScale;
     private int mPanelPosition;
     private Mode mMode;
+    private boolean mImageLoaded;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,14 +68,18 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         mSavedPanels = getIntent().getParcelableArrayListExtra("saved_panels");
         mMode = (Mode) getIntent().getSerializableExtra("mode");
 
-        Log.d(TAG, "onCreate: "
-                + "\n comic=" + mComic.getTitle()
-                + "\n creation=" + mCreation.getTitle()
-                + "\n savedPanels size=" + mSavedPanels.size()
-                + "\n mode=" + mMode
-        );
+        if (mCreation != null && mSavedPanels != null) {
+            Log.d(TAG, "onCreate: "
+                    + "\n comic=" + mComic.getTitle()
+                    + "\n creation=" + mCreation.getTitle()
+                    + "\n savedPanels size=" + mSavedPanels.size()
+                    + "\n mode=" + mMode
+            );
 
-        mSavedPanelNumber = mSavedPanels.size();
+            mSavedPanelNumber = mSavedPanels.size();
+
+        }
+
 
         setContentView(R.layout.activity_creation_mode);
 
@@ -104,12 +106,15 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
                 case READ:
                     actionBar.hide();
                     break;
+                case FREE_READ:
+                    actionBar.hide();
+                    break;
             }
         }
 
         mViewPager = (ViewPager) findViewById(R.id.viewPager);
-        mViewPager.setAdapter(new ComicPagerAdapter(this, mComic));
-        //mViewPager.setPageTransformer(true, new CustomPageTransformer());
+        mViewPager.setAdapter(new ComicPagerAdapter(this, mComic, mMode));
+        mViewPager.setPageTransformer(true, new CustomPageTransformer());
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -397,6 +402,13 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
             Log.d(TAG, "animateToPanel: getPage != getCurrentItem");
         }
 
+        if (!mImageView.isImageLoaded()) {
+            mImageLoaded = false;
+            return;
+        } else {
+            mImageLoaded = true;
+        }
+
         final PointF midPointPercentage = panel.getMidpoint();
         final PointF midPointCoord = new PointF(midPointPercentage.x * mImageView.getSWidth(),
                 midPointPercentage.y * mImageView.getSHeight());
@@ -405,6 +417,13 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
         PointF midPointView = mImageView.sourceToViewCoord(midPointCoord);
 
         final float screenRatio = (float)mImageView.getWidth() / (float)mImageView.getHeight();
+
+        if (!mHiddenImageView.isImageLoaded()) {
+            mImageLoaded = false;
+            return;
+        } else {
+            mImageLoaded = true;
+        }
 
         mHiddenImageView.animateScaleAndCenter(scale, midPointCoord)
                 .withDuration(1)
@@ -566,6 +585,10 @@ public class CreationModeActivity extends AppCompatActivity implements ComicPage
             public void onImageLoaded() {
                 Log.d(TAG, "loadImageViews.onImageLoaded: mImageView loaded");
                 mOriginalScale = mImageView.getScale();
+
+                if (mImageLoaded == true) {
+                    animateToPanel(mSavedPanels.get(mPanelPosition));
+                }
             }
             @Override
             public void onReady() {
