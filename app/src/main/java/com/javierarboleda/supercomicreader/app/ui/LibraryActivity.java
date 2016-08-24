@@ -38,40 +38,27 @@ import java.util.List;
 
 public class LibraryActivity extends AppCompatActivity implements FileChooserDialog.FileCallback {
 
-    private static final int REQUEST_FILE_ACCESS = 200;
     private DrawerLayout mDrawerLayout;
     private MaterialDialog mProgressBar;
     private Tracker mTracker;
 
     private static final int READ_REQUEST_CODE = 42;
+    private static final int REQUEST_FILE_ACCESS = 200;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_library);
 
-        AnalyticsApplication application =
-                ((AnalyticsApplication) LibraryActivity.this.getApplication());
-        mTracker = application.getDefaultTracker();
+        initGoogleAnalytics();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        initNavigationDrawer();
 
-//        final ActionBar ab = getSupportActionBar();
-//        if (ab != null) {
-//            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-//            ab.setDisplayHomeAsUpEnabled(true);
-//        }
+        initViewPager();
+    }
 
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
-        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-
-//        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-//        if (navigationView != null) {
-//            setupDrawerContent(navigationView);
-//        }
-
+    private void initViewPager() {
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         if (viewPager != null) {
             setupViewPager(viewPager);
@@ -81,8 +68,39 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    public void init() {
+    private void initNavigationDrawer() {
 
+        // todo:navDrawer: Complete navigation drawer options
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // hiding navigation drawer menu icon until drawer is fully implemented
+        /*
+        final ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setHomeAsUpIndicator(R.drawable.ic_menu);
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
+        */
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+
+        // navigation drawer options still require implementation
+        /*
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        if (navigationView != null) {
+            setupDrawerContent(navigationView);
+        }
+        */
+    }
+
+    private void initGoogleAnalytics() {
+        AnalyticsApplication application =
+                ((AnalyticsApplication) LibraryActivity.this.getApplication());
+        mTracker = application.getDefaultTracker();
     }
 
     @Override
@@ -95,13 +113,11 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home: {
-//                mDrawerLayout.openDrawer(GravityCompat.START);
-//
-//                if (isMPlus()) {
-//                    requestReadExternalStoragePermission();
-//                }
-//
-//                return true;
+                // todo:navDrawer: still need to implement navigation drawer options
+              /*
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                return true;
+              */
             }
             case R.id.action_add_comic: {
                 if (isMPlus()) {
@@ -115,8 +131,6 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 
     private void performFileSearch() {
 
@@ -163,8 +177,12 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+
+        // todo:bug:minor if user selects "Add comic" and selects grant permission, error dialog...
+        // still shows
+
         switch (requestCode) {
-            case REQUEST_FILE_ACCESS:
+            case READ_REQUEST_CODE:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
@@ -176,8 +194,13 @@ public class LibraryActivity extends AppCompatActivity implements FileChooserDia
 
     private void setupViewPager(ViewPager viewPager) {
         Adapter adapter = new Adapter(getSupportFragmentManager());
-//        adapter.addFragment(new AllComicsFragment(), "all comics");
+
         adapter.addFragment(new AllComicsFragment(), "all comics");
+
+        // todo:libraryTabs: add "MY CREATIONS" and "ARCHIVED COMICS" tabs
+        // adapter.addFragment(new AllComicsFragment(), "my creations");
+        // adapter.addFragment(new AllComicsFragment(), "archived comics");
+
         viewPager.setAdapter(adapter);
     }
 

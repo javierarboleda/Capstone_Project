@@ -12,5 +12,5 @@
     <string name="input_content"></string>
     <string name="widget_title">SuperComicReader!</string>
     <string name="empty_widget_list">No creations available</string>
-    <string name="choose_dialog_label"></string>
+    <string name="choose_dialog_label">Choose a .cbr or .cbz comic file</string>
 </resources>
